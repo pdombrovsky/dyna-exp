@@ -4,5 +4,5 @@ namespace DynaExp\Interfaces;
 
 interface TreeEvaluatorInterface
 {
-    function evaluateTree(NodeEvaluatorInterface $evaluator): string;
+    function evaluateTree(EvaluatorInterface $evaluator): string;
 }

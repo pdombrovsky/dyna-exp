@@ -1,6 +1,6 @@
 <?php
 
-namespace DynaExp\Builders;
+namespace DynaExp\Builders\Internal;
 
 use Aws\DynamoDb\BinaryValue;
 use DynaExp\Builders\Name;

@@ -1,7 +1,9 @@
 <?php
 
-namespace DynaExp\Builders;
+namespace DynaExp\Builders\Internal;
 
+use DynaExp\Builders\Internal\SizeNot;
+use DynaExp\Builders\Name;
 use DynaExp\Builders\Traits\ConditionTrait;
 use DynaExp\Nodes\Size as SizeNode;
 

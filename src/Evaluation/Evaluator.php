@@ -2,13 +2,18 @@
 
 namespace DynaExp\Evaluation;
 
+use DynaExp\Builders\Internal\UpdateOperation;
+use DynaExp\Builders\ProjectionBuilder;
+use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Enums\UpdateOperationModeEnum;
+use DynaExp\Enums\UpdateOperationTypeEnum;
 use DynaExp\Evaluation\Names;
 use DynaExp\Evaluation\Values;
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatedNodeInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\Dot;
 use DynaExp\Nodes\Index;
@@ -19,7 +24,7 @@ use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Update;
 use RuntimeException;
 
-class NodeEvaluator implements NodeEvaluatorInterface
+class Evaluator implements EvaluatorInterface
 {
     /**
      * @var Names
@@ -200,6 +205,61 @@ class NodeEvaluator implements NodeEvaluatorInterface
         $rightAlias = $updateNode->right ? $updateNode->right->evaluate($this) : $this->aliasValues->alias($updateNode->value);
 
         return sprintf($fmtString, $leftAlias, $rightAlias); 
+    }
+
+    /**
+     * @param UpdateOperation $updateOperation
+     * @throws RuntimeException
+     * @return string
+     */
+    public function evaluateUpdateOperation(UpdateOperation $updateOperation): string
+    {
+        $operations = $updateOperation->getOperations();
+
+        if (empty($operations)) {
+            return '';
+        }
+
+        $evaluatedNodes = array_map(fn(EvaluatedNodeInterface $node) => $node->evaluate($this), $operations);
+
+        $operation = match($updateOperation->type) {
+
+            UpdateOperationTypeEnum::set => 'SET',
+            UpdateOperationTypeEnum::add => 'ADD',
+            UpdateOperationTypeEnum::remove => 'REMOVE',
+            UpdateOperationTypeEnum::delete => 'DELETE',
+
+            default => throw new RuntimeException("Update operation type is unknown"),
+        };
+
+        return "$operation " . implode(', ', $evaluatedNodes);
+    }
+
+    /**
+     * @param UpdateBuilder $updateBuilder
+     * @return string
+     */
+    public function evaluateUpdateBuilderTree(UpdateBuilder $updateBuilder): string
+    {
+        $expressions = [];
+
+        foreach ($updateBuilder->operationsMap as $operations) {
+
+            $expressions[] = $operations->evaluateTree($this);
+        }
+
+        return empty($expressions) ? '' : implode(' ', $expressions);
+    }
+
+    /**
+     * @param ProjectionBuilder $projectionBuilder
+     * @return string
+     */
+    public function evaluateProjection(ProjectionBuilder $projectionBuilder): string
+    {
+        $evaluatedNodes = array_map(fn(EvaluatedNodeInterface $node) => $node->evaluate($this), $projectionBuilder->getNames());
+
+        return empty($evaluatedNodes) ? '' : implode(', ', $evaluatedNodes);
     }
 
     /**

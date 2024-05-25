@@ -3,7 +3,9 @@
 namespace DynaExp\Builders;
 
 use Aws\DynamoDb\BinaryValue;
-use DynaExp\Builders\IfNotExists;
+use DynaExp\Builders\Internal\IfNotExists;
+use DynaExp\Builders\Internal\Not;
+use DynaExp\Builders\Internal\Size;
 use DynaExp\Builders\Traits\ConditionTrait;
 use DynaExp\Builders\Traits\SetOperationTrait;
 use DynaExp\Enums\AttributeTypeEnum;

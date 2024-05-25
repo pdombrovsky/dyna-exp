@@ -4,7 +4,7 @@ namespace DynaExp\Builders;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 use DynaExp\Nodes\KeyCondition;
 
@@ -42,10 +42,10 @@ class KeyConditionBuilder implements TreeEvaluatorInterface
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    public function evaluateTree(NodeEvaluatorInterface $nodeEvaluator): string
+    public function evaluateTree(EvaluatorInterface $nodeEvaluator): string
     {
         return $this->current->evaluate($nodeEvaluator);
     }

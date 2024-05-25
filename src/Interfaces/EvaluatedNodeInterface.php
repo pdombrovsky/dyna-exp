@@ -2,13 +2,13 @@
 
 namespace DynaExp\Interfaces;
 
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 
 interface EvaluatedNodeInterface
 {
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    function evaluate(NodeEvaluatorInterface $evaluator): string;
+    function evaluate(EvaluatorInterface $evaluator): string;
 }

@@ -2,8 +2,9 @@
 
 namespace DynaExp\Builders;
 
+use DynaExp\Builders\Name;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 
 class ProjectionBuilder implements TreeEvaluatorInterface
@@ -41,13 +42,19 @@ class ProjectionBuilder implements TreeEvaluatorInterface
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @return EvaluatedNodeInterface[]
+     */
+    public function getNames(): array
+    {
+        return $this->names;
+    }
+
+    /**
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    public function evaluateTree(NodeEvaluatorInterface $nodeEvaluator): string
+    public function evaluateTree(EvaluatorInterface $evaluator): string
     {
-        $evaluatedNodes = array_map(fn(EvaluatedNodeInterface $node) => $node->evaluate($nodeEvaluator), $this->names);
-
-        return empty($evaluatedNodes) ? '' : implode(', ', $evaluatedNodes);
+        return $evaluator->evaluateProjection($this);
     }
 }

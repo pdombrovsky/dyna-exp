@@ -1,6 +1,6 @@
 <?php
 
-namespace DynaExp\Builders;
+namespace DynaExp\Builders\Internal;
 
 use DynaExp\Builders\Name;
 use DynaExp\Builders\Traits\SetOperationTrait;

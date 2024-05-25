@@ -2,7 +2,7 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Enums\ConditionTypeEnum;
 
@@ -19,10 +19,10 @@ readonly class Condition implements EvaluatedNodeInterface
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    public function evaluate(NodeEvaluatorInterface $evaluator): string
+    public function evaluate(EvaluatorInterface $evaluator): string
     {
         return $evaluator->evaluateCondition($this);
     }

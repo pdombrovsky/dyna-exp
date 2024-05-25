@@ -1,9 +1,9 @@
 <?php
 
-namespace DynaExp\Builders;
+namespace DynaExp\Builders\Internal;
 
 use Aws\DynamoDb\BinaryValue;
-use DynaExp\Builders\Size;
+use DynaExp\Builders\Internal\Size;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 

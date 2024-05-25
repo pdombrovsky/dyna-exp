@@ -7,8 +7,8 @@ use DynaExp\Builders\KeyConditionBuilder;
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Enums\ExpressionTypeEnum;
-use DynaExp\Evaluation\NodeEvaluator;
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Evaluation\Evaluator;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 
 
@@ -83,10 +83,10 @@ class ExpressionBuilder
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return Expression
      */
-    public function build(NodeEvaluatorInterface $evaluator = new NodeEvaluator()): Expression
+    public function build(EvaluatorInterface $evaluator = new Evaluator()): Expression
     {
         $expressionMap = $this->buildChildTrees($evaluator);
 
@@ -94,10 +94,10 @@ class ExpressionBuilder
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return array
      */
-    private function buildChildTrees(NodeEvaluatorInterface $evaluator): array
+    private function buildChildTrees(EvaluatorInterface $evaluator): array
     {
         $formattedExpressions = [];
 

@@ -3,28 +3,31 @@
 namespace DynaExp\Builders;
 
 use Aws\DynamoDb\SetValue;
+use DynaExp\Builders\Internal\UpdateOperation;
 use DynaExp\Enums\UpdateOperationModeEnum;
 use DynaExp\Enums\UpdateOperationTypeEnum;
-use DynaExp\Interfaces\EvaluatedNodeInterface;
-use DynaExp\Interfaces\NodeEvaluatorInterface;
+use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
-
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Update;
 
 class UpdateBuilder implements TreeEvaluatorInterface
 {
     /**
-     * @var array<string, array>
+     * @var array<string, UpdateOperation>
      */
-    private array $operationsMap;
+    public readonly array $operationsMap;
 
     public function __construct()
     {
+        $operationsMap = [];
+
         foreach (UpdateOperationTypeEnum::cases() as $operationType) {
 
-            $this->operationsMap[$operationType->name] = [];
+            $operationsMap[$operationType->name] = new UpdateOperation($operationType);
         }
+
+        $this->operationsMap = $operationsMap;
     }
 
     /**
@@ -34,7 +37,7 @@ class UpdateBuilder implements TreeEvaluatorInterface
      */
     public function add(Name $name, int|float|SetValue $value) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::add->name][] = new Update($name->getCurrentNode(), UpdateOperationModeEnum::add, value: $value);
+        $this->operationsMap[UpdateOperationTypeEnum::add->name]->add(new Update($name->getCurrentNode(), UpdateOperationModeEnum::add, value: $value));
 
         return $this;
     }
@@ -46,7 +49,7 @@ class UpdateBuilder implements TreeEvaluatorInterface
      */
     public function delete(Name $name, SetValue $value) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::delete->name][] = new Update($name->getCurrentNode(), UpdateOperationModeEnum::delete, value: $value);
+        $this->operationsMap[UpdateOperationTypeEnum::delete->name]->add(new Update($name->getCurrentNode(), UpdateOperationModeEnum::delete, value: $value));
 
         return $this;
     }
@@ -57,7 +60,7 @@ class UpdateBuilder implements TreeEvaluatorInterface
      */
     public function remove(Name $name) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::remove->name][] = $name->getCurrentNode();
+        $this->operationsMap[UpdateOperationTypeEnum::remove->name]->add($name->getCurrentNode());
 
         return $this;
     }
@@ -69,8 +72,9 @@ class UpdateBuilder implements TreeEvaluatorInterface
      */
     public function setValue(Name $name, mixed $value) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::set->name][] =
-            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, value: $value);
+        $this->operationsMap[UpdateOperationTypeEnum::set->name]->add(
+            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, value: $value)
+        );
 
         return $this;
     }
@@ -82,34 +86,19 @@ class UpdateBuilder implements TreeEvaluatorInterface
      */
     public function setOperation(Name $name, Operation $operation): UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::set->name][] =
-            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, $operation);
+        $this->operationsMap[UpdateOperationTypeEnum::set->name]->add(
+            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, $operation)
+        );
 
         return $this;
     }
 
     /**
-     * @param NodeEvaluatorInterface $evaluator
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    public function evaluateTree(NodeEvaluatorInterface $nodeEvaluator): string
+    public function evaluateTree(EvaluatorInterface $evaluator): string
     {
-        $formattedExpressions = [];
-
-        foreach (UpdateOperationTypeEnum::cases() as $operationType) {
-
-            $operationNodes = $this->operationsMap[$operationType->name];
-
-            if (empty($operationNodes)) {
-                
-                continue;
-            }
-
-            $evaluatedNodes = array_map(fn(EvaluatedNodeInterface $node) => $node->evaluate($nodeEvaluator), $operationNodes);
-
-            $formattedExpressions[] = "$operationType->value" . ' ' . implode(', ', $evaluatedNodes);
-        }
-
-        return empty($formattedExpressions) ? '' : implode(' ', $formattedExpressions);
+        return $evaluator->evaluateUpdateBuilderTree($this);
     }
 }
