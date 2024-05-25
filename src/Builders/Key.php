@@ -23,10 +23,10 @@ class Key
     }
 
     /**
-     * @param mixed $value
+     * @param int|float|string|BinaryValue $value
      * @return KeyCondition
      */
-    public function equal(mixed $value): KeyCondition
+    public function equal(int|float|string|BinaryValue $value): KeyCondition
     {
         return new KeyCondition($this->currentNode, KeyConditionTypeEnum::equalKeyCond, [$value]);
     }
