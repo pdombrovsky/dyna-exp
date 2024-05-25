@@ -9,7 +9,7 @@ use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 
 
-readonly class Not
+class Not
 {
     public function __construct(private Name $name)
     {
