@@ -10,6 +10,7 @@ use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Evaluation\Evaluator;
 use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
+use RuntimeException;
 
 
 class ExpressionBuilder
@@ -88,6 +89,10 @@ class ExpressionBuilder
      */
     public function build(EvaluatorInterface $evaluator = new Evaluator()): Expression
     {
+        if (empty($this->expressionMap)) {
+            throw new RuntimeException('There are no expressions to build');
+        }
+
         $expressionMap = $this->buildChildTrees($evaluator);
 
         return new Expression($expressionMap, $evaluator->getNames(), $evaluator->getValues());
