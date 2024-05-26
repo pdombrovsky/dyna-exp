@@ -16,13 +16,10 @@ use RuntimeException;
 class ExpressionBuilder
 {
     /**
-     * @var array
+     * @var array<ExpressionTypeEnum, TreeEvaluatorInterface>
      */
     private array $expressionMap;
 
-    /**
-     * @param array<ExpressionTypeEnum, TreeEvaluatorInterface> $expressionMap
-     */
     public function __construct()
     {
         $this->expressionMap = [];
