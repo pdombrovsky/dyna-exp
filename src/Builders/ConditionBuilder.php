@@ -7,7 +7,7 @@ use DynaExp\Interfaces\TreeEvaluatorInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Nodes\Condition;
 
-class ConditionBuilder implements TreeEvaluatorInterface
+final class ConditionBuilder implements TreeEvaluatorInterface
 {
     /**
      * @var Condition
@@ -30,15 +30,7 @@ class ConditionBuilder implements TreeEvaluatorInterface
      */
     public function and(Condition|ConditionBuilder|callable ...$conditions): static
     {
-        foreach ($conditions as $condition) {
-
-            if (! $condition instanceof Condition) {
-
-                $condition = static::parenthesizeInnerCondition($condition);
-            }
-
-            $this->current = new Condition($this->current, ConditionTypeEnum::andCond, right: $condition);
-        }
+        $this->current = static::glueConditions($this->current, ConditionTypeEnum::andCond, ...$conditions);
 
         return $this;
     }
@@ -47,7 +39,20 @@ class ConditionBuilder implements TreeEvaluatorInterface
      * @param Condition|ConditionBuilder|callable ...$conditions
      * @return ConditionBuilder
      */
-    public function or(Condition ...$conditions): static
+    public function or(Condition|ConditionBuilder|callable ...$conditions): static
+    {
+        $this->current = static::glueConditions($this->current, ConditionTypeEnum::orCond, ...$conditions);
+
+        return $this;
+    }
+
+    /**
+     * @param Condition $current
+     * @param ConditionTypeEnum $glue
+     * @param Condition[] $conditions
+     * @return Condition
+     */
+    private static function glueConditions(Condition $current, ConditionTypeEnum $glue, Condition ...$conditions): Condition
     {
         foreach ($conditions as $condition) {
 
@@ -56,10 +61,10 @@ class ConditionBuilder implements TreeEvaluatorInterface
                 $condition = static::parenthesizeInnerCondition($condition);
             }
 
-            $this->current = new Condition($this->current, ConditionTypeEnum::orCond, right: $condition);
+            $current = new Condition($current, $glue, right: $condition);
         }
 
-        return $this;
+        return $current;
     }
  
     /**

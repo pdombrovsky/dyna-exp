@@ -2,7 +2,7 @@
 
 namespace DynaExp\Evaluation;
 
-class Values
+final class Values
 {
     /**
      * @var mixed[]

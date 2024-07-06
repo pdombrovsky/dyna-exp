@@ -18,7 +18,7 @@ use DynaExp\Nodes\Name as NameNode;
 use DynaExp\Nodes\Operation;
 use RuntimeException;
 
-class Name
+final class Name
 {
     use ConditionTrait;
     use SetOperationTrait;

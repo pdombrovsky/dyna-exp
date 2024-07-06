@@ -12,8 +12,7 @@ use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 use RuntimeException;
 
-
-class ExpressionBuilder
+final class ExpressionBuilder
 {
     /**
      * @var array<ExpressionTypeEnum, TreeEvaluatorInterface>
@@ -29,7 +28,7 @@ class ExpressionBuilder
      * @param ConditionBuilder $conditionBuilder
      * @return ExpressionBuilder
      */
-    public function setConditionBuilder(ConditionBuilder $conditionBuilder): static
+    public function setConditionBuilder(ConditionBuilder $conditionBuilder): ExpressionBuilder
     {
         $this->expressionMap[ExpressionTypeEnum::condition->name] = $conditionBuilder;
 
@@ -40,7 +39,7 @@ class ExpressionBuilder
      * @param ConditionBuilder $conditionBuilder
      * @return ExpressionBuilder
      */
-    public function setFilterBuilder(ConditionBuilder $conditionBuilder): static
+    public function setFilterBuilder(ConditionBuilder $conditionBuilder): ExpressionBuilder
     {
         $this->expressionMap[ExpressionTypeEnum::filter->name] = $conditionBuilder;
 
@@ -51,7 +50,7 @@ class ExpressionBuilder
      * @param ProjectionBuilder $projectionBuilder
      * @return ExpressionBuilder
      */
-    public function setProjectionBuilder(ProjectionBuilder $projectionBuilder): static
+    public function setProjectionBuilder(ProjectionBuilder $projectionBuilder): ExpressionBuilder
     {
         $this->expressionMap[ExpressionTypeEnum::projection->name] = $projectionBuilder;
 
@@ -62,7 +61,7 @@ class ExpressionBuilder
      * @param KeyConditionBuilder $keyConditionBuilder
      * @return ExpressionBuilder
      */
-    public function setKeyConditionBuilder(KeyConditionBuilder $keyConditionBuilder): static
+    public function setKeyConditionBuilder(KeyConditionBuilder $keyConditionBuilder): ExpressionBuilder
     {
         $this->expressionMap[ExpressionTypeEnum::key->name] = $keyConditionBuilder;
 
@@ -73,7 +72,7 @@ class ExpressionBuilder
      * @param UpdateBuilder $updateBuilder
      * @return ExpressionBuilder
      */
-    public function setUpdateBuilder(UpdateBuilder $updateBuilder): static
+    public function setUpdateBuilder(UpdateBuilder $updateBuilder): ExpressionBuilder
     {
         $this->expressionMap[ExpressionTypeEnum::update->name] = $updateBuilder;
 

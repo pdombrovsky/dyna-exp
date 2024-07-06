@@ -2,7 +2,7 @@
 
 namespace DynaExp\Evaluation;
 
-class Names
+final class Names
 {
     /**
      * @var string[]

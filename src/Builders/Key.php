@@ -7,7 +7,7 @@ use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Name;
 
-class Key
+final class Key
 {
     /**
      * @var Name

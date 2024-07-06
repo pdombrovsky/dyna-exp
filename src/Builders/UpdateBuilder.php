@@ -11,7 +11,7 @@ use DynaExp\Interfaces\TreeEvaluatorInterface;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Update;
 
-class UpdateBuilder implements TreeEvaluatorInterface
+final class UpdateBuilder implements TreeEvaluatorInterface
 {
     /**
      * @var array<string, UpdateOperation>

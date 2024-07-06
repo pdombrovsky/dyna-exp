@@ -5,7 +5,7 @@ namespace DynaExp\Nodes;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-readonly class Name implements EvaluatedNodeInterface
+final readonly class Name implements EvaluatedNodeInterface
 {
     /**
      * @param string $name

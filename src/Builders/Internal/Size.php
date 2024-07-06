@@ -7,7 +7,7 @@ use DynaExp\Builders\Name;
 use DynaExp\Builders\Traits\ConditionTrait;
 use DynaExp\Nodes\Size as SizeNode;
 
-class Size
+final class Size
 {
     use ConditionTrait;
 

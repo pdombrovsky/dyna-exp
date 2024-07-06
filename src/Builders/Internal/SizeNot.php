@@ -7,7 +7,7 @@ use DynaExp\Builders\Internal\Size;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 
-class SizeNot
+final class SizeNot
 {
     public function __construct(private Size $size)
     {

@@ -24,7 +24,7 @@ use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Update;
 use RuntimeException;
 
-class Evaluator implements EvaluatorInterface
+final class Evaluator implements EvaluatorInterface
 {
     /**
      * @var Names
@@ -245,7 +245,13 @@ class Evaluator implements EvaluatorInterface
 
         foreach ($updateBuilder->operationsMap as $operations) {
 
-            $expressions[] = $operations->evaluateTree($this);
+            $currentExpression = $operations->evaluateTree($this);
+
+            if (!empty($currentExpression)) {
+
+                $expressions[] = $currentExpression;
+            }
+           
         }
 
         return empty($expressions) ? '' : implode(' ', $expressions);

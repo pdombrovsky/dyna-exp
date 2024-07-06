@@ -6,7 +6,7 @@ use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-readonly class Operation implements EvaluatedNodeInterface
+final readonly class Operation implements EvaluatedNodeInterface
 {
     /**
      * @param EvaluatedNodeInterface $node

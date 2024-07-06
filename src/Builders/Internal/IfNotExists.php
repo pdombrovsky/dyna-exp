@@ -8,7 +8,7 @@ use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Nodes\Operation;
 
-class IfNotExists
+final class IfNotExists
 {
     use SetOperationTrait;
 

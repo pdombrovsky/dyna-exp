@@ -6,11 +6,11 @@ use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Enums\ConditionTypeEnum;
 
-readonly class Condition implements EvaluatedNodeInterface
+final readonly class Condition implements EvaluatedNodeInterface
 {
     /**
      * @param EvaluatedNodeInterface $node
-     * @param EvaluatedNodeInterface $type
+     * @param ConditionTypeEnum $type
      * @param array $values
      * @param ?EvaluatedNodeInterface $right
      */

@@ -2,10 +2,10 @@
 
 namespace DynaExp\Enums;
 
-enum UpdateOperationTypeEnum: string
+enum UpdateOperationTypeEnum
 {
-    case add = 'ADD';
-    case delete = 'DELETE';
-    case remove = 'REMOVE';
-    case set = 'SET';
+    case add;
+    case delete;
+    case remove;
+    case set;
 }

@@ -7,7 +7,7 @@ use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 
-class ProjectionBuilder implements TreeEvaluatorInterface
+final class ProjectionBuilder implements TreeEvaluatorInterface
 {
     /**
      * @var array

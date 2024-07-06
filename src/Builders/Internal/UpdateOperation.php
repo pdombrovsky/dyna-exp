@@ -7,7 +7,7 @@ use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 use DynaExp\Interfaces\TreeEvaluatorInterface;
 
-class UpdateOperation implements TreeEvaluatorInterface
+final class UpdateOperation implements TreeEvaluatorInterface
 {
     /**
      * @var EvaluatedNodeInterface[]

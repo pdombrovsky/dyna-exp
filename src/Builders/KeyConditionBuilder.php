@@ -10,7 +10,7 @@ use DynaExp\Nodes\KeyCondition;
 
 use RuntimeException;
 
-class KeyConditionBuilder implements TreeEvaluatorInterface
+final class KeyConditionBuilder implements TreeEvaluatorInterface
 {
     /**
      * @var EvaluatedNodeInterface

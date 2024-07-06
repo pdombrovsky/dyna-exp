@@ -8,8 +8,7 @@ use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 
-
-class Not
+final class Not
 {
     public function __construct(private Name $name)
     {

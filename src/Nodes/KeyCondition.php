@@ -6,7 +6,7 @@ use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-readonly class KeyCondition implements EvaluatedNodeInterface
+final readonly class KeyCondition implements EvaluatedNodeInterface
 {
     /**
      * @param EvaluatedNodeInterface $node

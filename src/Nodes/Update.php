@@ -2,16 +2,15 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Enums\UpdateOperationModeEnum;
 use DynaExp\Interfaces\EvaluatedNodeInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-readonly class Update implements EvaluatedNodeInterface
+final readonly class Update implements EvaluatedNodeInterface
 {
     /**
      * @param EvaluatedNodeInterface $left
-     * @param OperationTypeEnum $mode
+     * @param UpdateOperationModeEnum $mode
      * @param ?EvaluatedNodeInterface $right
      * @param mixed $value
      */
