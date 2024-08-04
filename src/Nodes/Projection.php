@@ -6,17 +6,16 @@ use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 use RangeException;
 
-
-final readonly class Update implements EvaluableInterface
+final readonly class Projection implements EvaluableInterface
 {
     /**
-     * @param ActionsSequence[] $sequences
+     * @param EvaluableInterface[] $attributes
      */
-    public function __construct(public array $sequences)
+    public function __construct(public array $attributes)
     { 
         if (empty($sequences)) {
 
-            throw new RangeException("Action sequences must be set");
+            throw new RangeException("Projected attributes must be set");
         }
     }
 
@@ -26,6 +25,6 @@ final readonly class Update implements EvaluableInterface
      */
     public function evaluate(EvaluatorInterface $evaluator): string
     {
-        return $evaluator->evaluateUpdate($this);
+        return $evaluator->evaluateProjection($this);
     }
 }

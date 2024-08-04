@@ -3,17 +3,17 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Interfaces\EvaluatedNodeInterface;
+use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-final readonly class Operation implements EvaluatedNodeInterface
+final readonly class Operation implements EvaluableInterface
 {
     /**
-     * @param EvaluatedNodeInterface $node
+     * @param EvaluableInterface $node
      * @param OperationTypeEnum $type
      * @param mixed $value
      */
-    public function __construct(public EvaluatedNodeInterface $node, public OperationTypeEnum $type, public mixed $value = null)
+    public function __construct(public EvaluableInterface $node, public OperationTypeEnum $type, public mixed $value = null)
     {  
     }
 
@@ -23,6 +23,6 @@ final readonly class Operation implements EvaluatedNodeInterface
      */
     public function evaluate(EvaluatorInterface $evaluator): string
     {
-        return $evaluator->evaluateOperation($this);
+        return $evaluator->evaluateOperand($this);
     }
 }

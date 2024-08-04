@@ -20,7 +20,7 @@ final class Values
      */
     public function alias(mixed $value): string
     {
-        $alias = ':' . count($this->aliasMap);
+        $alias = ':' . $this->count();
 
         $this->aliasMap[$alias] = $value;
 
@@ -33,5 +33,13 @@ final class Values
     public function getMap(): array
     {
         return $this->aliasMap;
+    }
+
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->aliasMap);
     }
 }

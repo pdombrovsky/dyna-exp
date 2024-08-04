@@ -2,15 +2,15 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\EvaluatedNodeInterface;
+use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
 
-final readonly class Size implements EvaluatedNodeInterface
+final readonly class Size implements EvaluableInterface
 {
     /**
-     * @param EvaluatedNodeInterface $node
+     * @param EvaluableInterface $node
      */
-    public function __construct(public EvaluatedNodeInterface $node)
+    public function __construct(public EvaluableInterface $node)
     {  
     }
 

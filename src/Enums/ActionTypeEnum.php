@@ -2,7 +2,7 @@
 
 namespace DynaExp\Enums;
 
-enum UpdateOperationTypeEnum
+enum ActionTypeEnum
 {
     case add;
     case delete;

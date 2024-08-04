@@ -3,7 +3,7 @@
 namespace DynaExp\Builders\Internal;
 
 use DynaExp\Builders\Internal\SizeNot;
-use DynaExp\Builders\Name;
+use DynaExp\Builders\Path;
 use DynaExp\Builders\Traits\ConditionTrait;
 use DynaExp\Nodes\Size as SizeNode;
 
@@ -13,11 +13,11 @@ final class Size
 
     /**
 
-     * @param Name $name
+     * @param Path $name
      */
-    public function __construct(Name $name)
+    public function __construct(Path $name)
     {
-        $this->currentNode = new SizeNode($name->getCurrentNode());
+        $this->node = new SizeNode($name->getNode());
     }
 
     /**

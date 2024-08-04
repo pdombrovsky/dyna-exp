@@ -24,7 +24,7 @@ final class Names
 
         if (false === $alias) {
 
-            $alias = '#' . count($this->aliasMap);
+            $alias = '#' . $this->count();
 
             $this->aliasMap[$alias] = $name;
 
@@ -39,5 +39,13 @@ final class Names
     public function getMap(): array
     {
         return $this->aliasMap;
+    }
+
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->aliasMap);
     }
 }

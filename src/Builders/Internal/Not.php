@@ -3,14 +3,14 @@
 namespace DynaExp\Builders\Internal;
 
 use Aws\DynamoDb\BinaryValue;
-use DynaExp\Builders\Name;
+use DynaExp\Builders\Path;
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 
 final class Not
 {
-    public function __construct(private Name $name)
+    public function __construct(private Path $name)
     {
     }
 
@@ -24,10 +24,10 @@ final class Not
     }
 
     /**
-     * @param int|float|string|BinaryValue $prefix
+     * @param string $prefix
      * @return Condition
      */
-    public function beginsWith(int|float|string|BinaryValue $prefix): Condition
+    public function beginsWith(string $prefix): Condition
     {
         return new Condition($this->name->beginsWith($prefix), ConditionTypeEnum::notCond);
     }

@@ -4,7 +4,7 @@ namespace DynaExp\Interfaces;
 
 use DynaExp\Interfaces\EvaluatorInterface;
 
-interface EvaluatedNodeInterface
+interface EvaluableInterface
 {
     /**
      * @param EvaluatorInterface $evaluator

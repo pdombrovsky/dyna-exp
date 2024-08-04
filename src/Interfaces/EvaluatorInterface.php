@@ -2,31 +2,80 @@
 
 namespace DynaExp\Interfaces;
 
-use DynaExp\Builders\Internal\UpdateOperation;
-use DynaExp\Builders\ProjectionBuilder;
-use DynaExp\Builders\UpdateBuilder;
+use Aws\DynamoDb\Marshaler;
+use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
-use DynaExp\Nodes\Dot;
-use DynaExp\Nodes\Index;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\KeyCondition;
-use DynaExp\Nodes\Name;
 use DynaExp\Nodes\Operation;
+use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
+use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Update;
 
 interface EvaluatorInterface
 {
-    function evaluateName(Name $nameNode): string;
-    function evaluateIndex(Index $indexNode): string;
-    function evaluateDot(Dot $dotNode): string;
+    /**
+     * @param PathNode $pathNode
+     * @return string
+     */
+    function evaluatePathNode(PathNode $pathNode): string;
+
+    /**
+     * @param Size $sizeNode
+     * @return string
+     */
     function evaluateSize(Size $sizeNode): string;
+
+    /**
+     * @param ActionsSequence $sequence
+     * @return string
+     */
+    function evaluateActionsSequence(ActionsSequence $sequence): string;
+
+    /**
+     * @param Condition $conditionNode
+     * @return string
+     */
     function evaluateCondition(Condition $conditionNode): string;
+
+    /**
+     * @param KeyCondition $keyConditionNode
+     * @return string
+     */
     function evaluateKeyCondition(KeyCondition $keyConditionNode): string;
-    function evaluateOperation(Operation $operationNode): string;
+
+    /**
+     * @param Operation $operand
+     * @return string
+     */
+    function evaluateOperand(Operation $operand): string;
+
+    /**
+     * @param Action $actionNode
+     * @return string
+     */
+    function evaluateAction(Action $actionNode): string;
+
+    /**
+     * @param Projection $projectionNode
+     * @return string
+     */
+    function evaluateProjection(Projection $projectionNode): string;
+
+    /**
+     * @param Update $updateNode
+     * @return string
+     */
     function evaluateUpdate(Update $updateNode): string;
-    function evaluateUpdateOperation(UpdateOperation $updateOperation): string;
-    function evaluateUpdateBuilderTree(UpdateBuilder $updateBulder): string;
-    function evaluateProjection(ProjectionBuilder $projectionBuilder): string;
-    function getNames(): array;
-    function getValues(): array;
+
+    /**
+     * @return array
+     */
+    function getExpressionAttributeNames(): array;
+
+    /**
+     * @return array
+     */
+    function getExpressionAttributeValues(Marshaler $marshaler): array;
 }

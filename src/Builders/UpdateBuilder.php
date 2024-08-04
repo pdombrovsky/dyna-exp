@@ -3,102 +3,98 @@
 namespace DynaExp\Builders;
 
 use Aws\DynamoDb\SetValue;
-use DynaExp\Builders\Internal\UpdateOperation;
-use DynaExp\Enums\UpdateOperationModeEnum;
-use DynaExp\Enums\UpdateOperationTypeEnum;
-use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\TreeEvaluatorInterface;
+use DynaExp\Builders\Internal\IfNotExists;
+use DynaExp\Enums\ActionTypeEnum;
+use DynaExp\Interfaces\BuilderInterface;
+use DynaExp\Interfaces\NodeInterface;
 use DynaExp\Nodes\Operation;
+use DynaExp\Nodes\Action;
+use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Update;
 
-final class UpdateBuilder implements TreeEvaluatorInterface
+final class UpdateBuilder implements BuilderInterface
 {
     /**
-     * @var array<string, UpdateOperation>
+     * @var array<string, Action[]>
      */
-    public readonly array $operationsMap;
+    private array $actions;
 
     public function __construct()
     {
-        $operationsMap = [];
-
-        foreach (UpdateOperationTypeEnum::cases() as $operationType) {
-
-            $operationsMap[$operationType->name] = new UpdateOperation($operationType);
-        }
-
-        $this->operationsMap = $operationsMap;
+        $this->actions = [];
     }
 
     /**
-     * @param Name $name
+     * @param Path $name
      * @param int|float|SetValue $value
      * @return UpdateBuilder
      */
-    public function add(Name $name, int|float|SetValue $value) : UpdateBuilder
+    public function add(Path $name, int|float|SetValue $value) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::add->name]->add(new Update($name->getCurrentNode(), UpdateOperationModeEnum::add, value: $value));
+        $this->actions[ActionTypeEnum::add->name][] =
+            new Action($name->getNode(), ActionTypeEnum::add, $value);
 
         return $this;
     }
 
     /**
-     * @param Name $name
+     * @param Path $name
      * @param SetValue $value
      * @return UpdateBuilder
      */
-    public function delete(Name $name, SetValue $value) : UpdateBuilder
+    public function delete(Path $name, SetValue $value) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::delete->name]->add(new Update($name->getCurrentNode(), UpdateOperationModeEnum::delete, value: $value));
+        $this->actions[ActionTypeEnum::delete->name][] =
+            new Action($name->getNode(), ActionTypeEnum::delete, $value);
 
         return $this;
     }
 
     /**
-     * @param Name $name
+     * @param Path $name
      * @return UpdateBuilder
      */
-    public function remove(Name $name) : UpdateBuilder
+    public function remove(Path $name) : UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::remove->name]->add($name->getCurrentNode());
+        $this->actions[ActionTypeEnum::remove->name][] = 
+            new Action($name->getNode(), ActionTypeEnum::remove);
 
         return $this;
     }
 
     /**
-     * @param Name $name
-     * @param mixed $value
+     * @param Path $name
+     * @param Operation|Path|IfNotExists|mixed $value
      * @return UpdateBuilder
      */
-    public function setValue(Name $name, mixed $value) : UpdateBuilder
+    public function set(Path $name, mixed $value): UpdateBuilder
     {
-        $this->operationsMap[UpdateOperationTypeEnum::set->name]->add(
-            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, value: $value)
-        );
+        if ($value instanceof NodeInterface) {
+            $value = $value->getNode();
+        }
+
+        $this->actions[ActionTypeEnum::set->name][] = 
+            new Action($name->getNode(), ActionTypeEnum::set, $value);
 
         return $this;
     }
 
     /**
-     * @param Name $name
-     * @param Operation $operation
-     * @return UpdateBuilder
+     * @return Update
      */
-    public function setOperation(Name $name, Operation $operation): UpdateBuilder
+    public function build(): Update
     {
-        $this->operationsMap[UpdateOperationTypeEnum::set->name]->add(
-            new Update($name->getCurrentNode(), UpdateOperationModeEnum::setValue, $operation)
-        );
+        $updates = [];
 
-        return $this;
-    }
+        foreach (ActionTypeEnum::cases() as $actionType) {
 
-    /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
-     */
-    public function evaluateTree(EvaluatorInterface $evaluator): string
-    {
-        return $evaluator->evaluateUpdateBuilderTree($this);
+            if (isset($this->actions[$actionType->name])) {
+
+                $updates[] = new ActionsSequence($actionType, $this->actions[$actionType->name]);
+            }
+           
+        }
+     
+        return new Update($updates);
     }
 }

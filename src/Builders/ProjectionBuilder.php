@@ -2,59 +2,50 @@
 
 namespace DynaExp\Builders;
 
-use DynaExp\Builders\Name;
-use DynaExp\Interfaces\EvaluatedNodeInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\TreeEvaluatorInterface;
+use DynaExp\Builders\Path;
+use DynaExp\Interfaces\BuilderInterface;
+use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Nodes\Projection;
 
-final class ProjectionBuilder implements TreeEvaluatorInterface
+final class ProjectionBuilder implements BuilderInterface
 {
     /**
-     * @var array
+     * @var EvaluableInterface[]
      */
-    private array $names;
+    private array $nodes;
 
     /**
-     * @param Name ...$names
+     * @param Path ...$names
      */
-    public function __construct(Name ...$names)
+    public function __construct(Path ...$names)
     {
-        $this->names = [];
+        $this->nodes = [];
 
         foreach ($names as $nameBulder) {
 
-            $this->names[] = $nameBulder->getCurrentNode();
+            $this->nodes[] = $nameBulder->getNode();
         }
     }
 
     /**
-     * @param Name ...$names
+     * @param Path ...$names
      * @return ProjectionBuilder
      */
-    public function add(Name ...$names) : ProjectionBuilder
+    public function add(Path ...$names) : ProjectionBuilder
     {
         foreach ($names as $nameBuilder) {
 
-            $this->names[] = $nameBuilder->getCurrentNode();
+            $this->nodes[] = $nameBuilder->getNode();
         }
 
         return $this;
     }
 
     /**
-     * @return EvaluatedNodeInterface[]
+     * @return Projection
      */
-    public function getNames(): array
+    public function build(): Projection
     {
-        return $this->names;
-    }
-
-    /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
-     */
-    public function evaluateTree(EvaluatorInterface $evaluator): string
-    {
-        return $evaluator->evaluateProjection($this);
+        return new Projection($this->nodes);
     }
 }

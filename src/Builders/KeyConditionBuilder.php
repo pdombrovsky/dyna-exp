@@ -3,19 +3,18 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
-use DynaExp\Interfaces\EvaluatedNodeInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\TreeEvaluatorInterface;
+use DynaExp\Interfaces\BuilderInterface;
+use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 
 use RuntimeException;
 
-final class KeyConditionBuilder implements TreeEvaluatorInterface
+final class KeyConditionBuilder implements BuilderInterface
 {
     /**
-     * @var EvaluatedNodeInterface
+     * @var EvaluableInterface
      */
-    private EvaluatedNodeInterface $current;
+    private EvaluableInterface $current;
 
     /**
      * @param KeyCondition $primaryKeyCondition
@@ -36,17 +35,22 @@ final class KeyConditionBuilder implements TreeEvaluatorInterface
      * @param KeyCondition $sortKeyCondition
      * @return void
      */
-    public function and(KeyCondition $sortKeyCondition)
+    public function and(KeyCondition $sortKeyCondition): void
     {
-        $this->current = new KeyCondition($this->current, KeyConditionTypeEnum::andKeyCond, right: $sortKeyCondition);
+        if ($sortKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
+
+            throw new RuntimeException("Condition 'AND' must not be used twice");
+
+        }
+
+        $this->current = new KeyCondition($this->current, KeyConditionTypeEnum::andKeyCond, $sortKeyCondition);
     }
 
     /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
+     * @return KeyCondition
      */
-    public function evaluateTree(EvaluatorInterface $nodeEvaluator): string
+    public function build(): KeyCondition
     {
-        return $this->current->evaluate($nodeEvaluator);
+        return $this->current;
     }
 }

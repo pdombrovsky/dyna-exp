@@ -3,9 +3,10 @@
 namespace DynaExp;
 
 use DynaExp\Builders\ConditionBuilder;
+use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Builders\Key;
 use DynaExp\Builders\KeyConditionBuilder;
-use DynaExp\Builders\Name;
+use DynaExp\Builders\Path;
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Enums\ConditionTypeEnum;
@@ -17,23 +18,23 @@ class EH
 {
     /**
      * @param string $attributeName
-     * @return Name
+     * @return Path
      */
-    public static function name(string $attributeName): Name
+    public static function path(string $attributeName): Path
     {
-        return new Name($attributeName);
+        return new Path($attributeName);
     }
 
     /**
      * @param string $attributeName
-     * @param string|int ...$pathParts
-     * @return Name
+     * @param string|int ...$segments
+     * @return Path
      */
-    public static function nameFromParts(string $attributeName, string|int ...$pathParts): Name
+    public static function pathFromSegments(string $attributeName, string|int ...$segments): Path
     {
-        $name = new Name($attributeName);
+        $name = new Path($attributeName);
 
-        foreach ($pathParts as $part) {
+        foreach ($segments as $part) {
 
             if (is_int($part)) {
 
@@ -42,7 +43,7 @@ class EH
                 continue;
             }
 
-            $name->path($part);
+            $name->segment($part);
 
         }
 
@@ -50,18 +51,18 @@ class EH
     }
 
     /**
-     * @param string $path
+     * @param string $pathString
      * @throws RuntimeException
-     * @return Name
+     * @return Path
      */
-    public static function nameFromPathString(string $path): Name
+    public static function pathFromString(string $pathString): Path
     {
-        if (empty($path)) {
+        if (empty($pathString)) {
             throw new RuntimeException("Input string is empty");
         }
 
-        $parts = explode('.', $path);
-        $name = null;
+        $parts = explode('.', $pathString);
+        $path = null;
 
         foreach ($parts as $part) {
             if (empty($part)) {
@@ -70,6 +71,7 @@ class EH
 
             while (strlen($part) > 0) {
                 if (str_starts_with($part, '[')) {
+
                     $endBracketPos = strpos($part, ']');
                     if ($endBracketPos === false) {
                         throw new RuntimeException("Unclosed bracket found");
@@ -80,13 +82,15 @@ class EH
                         throw new RuntimeException("Index must be a non-negative integer");
                     }
 
-                    if ($name === null) {
+                    if ($path === null) {
                         throw new RuntimeException("Index used without a preceding attribute name");
                     }
 
-                    $name->index((int) $number);
+                    $path->index((int) $number);
                     $part = substr($part, $endBracketPos + 1);
+
                 } else {
+
                     $nextBracketPos = strpos($part, '[');
 
                     if (str_contains($part, ']') && ($nextBracketPos === false || $nextBracketPos > strpos($part, ']'))) {
@@ -96,16 +100,17 @@ class EH
                     $namePart = $nextBracketPos === false ? $part : substr($part, 0, $nextBracketPos);
                     $part = $nextBracketPos === false ? '' : substr($part, $nextBracketPos);
 
-                    if ($name === null) {
-                        $name = new Name($namePart);
+                    if ($path === null) {
+                        $path = new Path($namePart);
                     } else {
-                        $name->path($namePart);
+                        $path->segment($namePart);
                     }
+
                 }
             }
         }
 
-        return $name;
+        return $path;
     }
 
     /**
@@ -153,10 +158,10 @@ class EH
     }
 
     /**
-     * @param Name ...$names
+     * @param Path ...$names
      * @return ProjectionBuilder
      */
-    public static function projectionBuilder(Name ...$names): ProjectionBuilder
+    public static function projectionBuilder(Path ...$names): ProjectionBuilder
     {
         return new ProjectionBuilder(...$names);
     }

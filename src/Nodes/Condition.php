@@ -3,18 +3,17 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\EvaluatedNodeInterface;
+use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Enums\ConditionTypeEnum;
 
-final readonly class Condition implements EvaluatedNodeInterface
+final readonly class Condition implements EvaluableInterface
 {
     /**
-     * @param EvaluatedNodeInterface $node
+     * @param EvaluableInterface $node
      * @param ConditionTypeEnum $type
-     * @param array $values
-     * @param ?EvaluatedNodeInterface $right
+     * @param null|array|EvaluableInterface $right
      */
-    public function __construct(public EvaluatedNodeInterface $node, public ConditionTypeEnum $type, public array $values = [], public ?EvaluatedNodeInterface $right = null)
+    public function __construct(public EvaluableInterface $node, public ConditionTypeEnum $type, public null|array|EvaluableInterface $right = null)
     {
     }
 

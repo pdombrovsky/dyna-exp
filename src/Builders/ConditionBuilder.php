@@ -3,11 +3,10 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\ConditionTypeEnum;
-use DynaExp\Interfaces\TreeEvaluatorInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Interfaces\BuilderInterface;
 use DynaExp\Nodes\Condition;
 
-final class ConditionBuilder implements TreeEvaluatorInterface
+final class ConditionBuilder implements BuilderInterface
 {
     /**
      * @var Condition
@@ -28,9 +27,9 @@ final class ConditionBuilder implements TreeEvaluatorInterface
      * @param Condition|ConditionBuilder|callable ...$conditions
      * @return ConditionBuilder
      */
-    public function and(Condition|ConditionBuilder|callable ...$conditions): static
+    public function and(Condition|ConditionBuilder|callable ...$conditions): ConditionBuilder
     {
-        $this->current = static::glueConditions($this->current, ConditionTypeEnum::andCond, ...$conditions);
+        $this->glueConditions(ConditionTypeEnum::andCond, ...$conditions);
 
         return $this;
     }
@@ -39,20 +38,18 @@ final class ConditionBuilder implements TreeEvaluatorInterface
      * @param Condition|ConditionBuilder|callable ...$conditions
      * @return ConditionBuilder
      */
-    public function or(Condition|ConditionBuilder|callable ...$conditions): static
+    public function or(Condition|ConditionBuilder|callable ...$conditions): ConditionBuilder
     {
-        $this->current = static::glueConditions($this->current, ConditionTypeEnum::orCond, ...$conditions);
+        $this->glueConditions(ConditionTypeEnum::orCond, ...$conditions);
 
         return $this;
     }
 
     /**
-     * @param Condition $current
      * @param ConditionTypeEnum $glue
-     * @param Condition[] $conditions
-     * @return Condition
+     * @param Condition ...$conditions
      */
-    private static function glueConditions(Condition $current, ConditionTypeEnum $glue, Condition ...$conditions): Condition
+    private function glueConditions(ConditionTypeEnum $glue, Condition ...$conditions): void
     {
         foreach ($conditions as $condition) {
 
@@ -61,10 +58,8 @@ final class ConditionBuilder implements TreeEvaluatorInterface
                 $condition = static::parenthesizeInnerCondition($condition);
             }
 
-            $current = new Condition($current, $glue, right: $condition);
+            $this->current = new Condition($this->current, $glue, $condition);
         }
-
-        return $current;
     }
  
     /**
@@ -80,13 +75,12 @@ final class ConditionBuilder implements TreeEvaluatorInterface
 
         return new Condition($condition->current, ConditionTypeEnum::parenthesesCond);
     }
-
+    
     /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
+     * @return Condition
      */
-    public function evaluateTree(EvaluatorInterface $nodeEvaluator): string
+    public function build(): Condition
     {
-        return $this->current->evaluate($nodeEvaluator);
+        return $this->current;
     }
 }

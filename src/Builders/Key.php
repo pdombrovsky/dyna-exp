@@ -5,21 +5,21 @@ namespace DynaExp\Builders;
 use Aws\DynamoDb\BinaryValue;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
-use DynaExp\Nodes\Name;
+use DynaExp\Nodes\PathNode;
 
 final class Key
 {
     /**
-     * @var Name
+     * @var PathNode
      */
-    private Name $currentNode;
+    private PathNode $currentNode;
     
     /**
      * @param string $key
      */
     public function __construct(private string $key)
     {
-        $this->currentNode = new Name($key);
+        $this->currentNode = new PathNode($key);
     }
 
     /**

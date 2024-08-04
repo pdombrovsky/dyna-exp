@@ -2,11 +2,13 @@
 
 namespace DynaExp\Enums;
 
-enum ExpressionTypeEnum
+enum ExpressionTypeEnum: string
 {
-    case projection;
-    case key;
-    case filter;
-    case condition;
-    case update;
+    case projection = 'ProjectionExpression';
+    case keyCondition = 'KeyConditionExpression';
+    case filter = 'FilterExpression';
+    case condition = 'ConditionExpression';
+    case update = 'UpdateExpression';
+    case names = 'ExpressionAttributeNames';
+    case values = 'ExpressionAttributeValues';
 }
