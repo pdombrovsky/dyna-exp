@@ -9,7 +9,12 @@
         }
     ],
     "autoload": {
-        "psr-4": { "DynaExp\\": "src/"}
+        "psr-4": {
+            "DynaExp\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "require": {
         "php": ">=8.2.0",

@@ -82,10 +82,15 @@ final class ExpressionBuilder
      */
     public function build(): ExpressionContext
     {
-        $components = array_map(
-            fn(BuilderInterface $builder) => $builder->build(),
-            $this->builders
-        );
+        $components = [];
+
+        foreach ($this->builders as $type => $builder) {
+
+            if ($evaluableExpression = $builder->build()) {
+
+                $components[$type] = $evaluableExpression;
+            }
+        }
 
         return new ExpressionContext($components);
     }

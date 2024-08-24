@@ -7,7 +7,7 @@ use DynaExp\Interfaces\EvaluableInterface;
 interface BuilderInterface
 {
     /**
-     * @return EvaluableInterface
+     * @return ?EvaluableInterface
      */
-    function build(): EvaluableInterface;
+    function build(): ?EvaluableInterface;
 }

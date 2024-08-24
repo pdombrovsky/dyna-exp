@@ -4,7 +4,6 @@ namespace DynaExp\Nodes;
 
 use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Interfaces\EvaluatorInterface;
-use RangeException;
 
 
 final readonly class Update implements EvaluableInterface
@@ -14,10 +13,6 @@ final readonly class Update implements EvaluableInterface
      */
     public function __construct(public array $sequences)
     { 
-        if (empty($sequences)) {
-
-            throw new RangeException("Action sequences must be set");
-        }
     }
 
     /**

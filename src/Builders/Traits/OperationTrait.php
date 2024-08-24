@@ -21,7 +21,6 @@ trait OperationTrait
             OperationTypeEnum::plusValue,
             $value instanceof NodeInterface ? $value->getNode() : $value
         );
-
     }
 
     /**

@@ -4,7 +4,6 @@ namespace DynaExp\Builders;
 
 use Aws\DynamoDb\BinaryValue;
 use DynaExp\Builders\Internal\IfNotExists;
-use DynaExp\Builders\Internal\Not;
 use DynaExp\Builders\Internal\Size;
 use DynaExp\Builders\Traits\ConditionTrait;
 use DynaExp\Builders\Traits\NodeTrait;
@@ -127,18 +126,10 @@ final class Path implements NodeInterface
     }
 
     /**
-     * @return Not
-     */
-    public function not(): Not
-    {
-        return new Not($this);
-    }
-
-    /**
      * @param mixed $value
      * @return IfNotExists
      */
-    public function ifNotExists(mixed $value): IfNotExists
+    public function setIfNotExists(mixed $value): IfNotExists
     {
         return new IfNotExists($this, $value);
     }

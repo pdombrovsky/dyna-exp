@@ -14,7 +14,7 @@ trait ConditionTrait
      */
     public function equal(mixed $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::equalCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::equalCond, [$value]);
     }
 
     /**
@@ -23,7 +23,7 @@ trait ConditionTrait
      */
     public function notEqual(mixed $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::notEqualCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::notEqualCond, [$value]);
     }
 
     /**
@@ -32,7 +32,7 @@ trait ConditionTrait
      */
     public function lessThan(int|float|string|BinaryValue $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::lessThanCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::lessThanCond, [$value]);
     }
 
     /**
@@ -41,7 +41,7 @@ trait ConditionTrait
      */
     public function lessThanEqual(int|float|string|BinaryValue $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::lessThanEqualCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::lessThanEqualCond, [$value]);
     }
 
     /**
@@ -50,7 +50,7 @@ trait ConditionTrait
      */
     public function greaterThan(int|float|string|BinaryValue $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::greaterThanCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::greaterThanCond, [$value]);
     }
 
     /**
@@ -59,7 +59,7 @@ trait ConditionTrait
      */
     public function greaterThanEqual(int|float|string|BinaryValue $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::greaterThanEqualCond, [$value]);
+        return new Condition($this->getNode(), ConditionTypeEnum::greaterThanEqualCond, [$value]);
     }
 
     /**
@@ -69,15 +69,15 @@ trait ConditionTrait
      */
     public function between(int|float|string|BinaryValue $lower, int|float|string|BinaryValue $upper): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::betweenCond, [$lower, $upper]);
+        return new Condition($this->getNode(), ConditionTypeEnum::betweenCond, [$lower, $upper]);
     }
 
     /**
-     * @param int|float|string|BinaryValue[] $range
+     * @param int|float|string|BinaryValue ...$range
      * @return Condition
      */
     public function in(int|float|string|BinaryValue ...$range): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::inCond, $range);
+        return new Condition($this->getNode(), ConditionTypeEnum::inCond, $range);
     } 
 }
