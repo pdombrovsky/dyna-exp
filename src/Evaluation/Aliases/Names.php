@@ -1,6 +1,6 @@
 <?php
 
-namespace DynaExp\Evaluation;
+namespace DynaExp\Evaluation\Aliases;
 
 final class Names
 {

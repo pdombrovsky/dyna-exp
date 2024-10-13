@@ -2,7 +2,7 @@
 
 namespace DynaExp\Builders\Traits;
 
-use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Nodes\EvaluableInterface;
 
 trait NodeTrait
 {

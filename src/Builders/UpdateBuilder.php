@@ -2,17 +2,15 @@
 
 namespace DynaExp\Builders;
 
-use Aws\DynamoDb\SetValue;
 use DynaExp\Builders\Internal\IfNotExists;
+use DynaExp\Builders\Internal\NodeInterface;
 use DynaExp\Enums\ActionTypeEnum;
-use DynaExp\Interfaces\BuilderInterface;
-use DynaExp\Interfaces\NodeInterface;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Update;
 
-final class UpdateBuilder implements BuilderInterface
+final class UpdateBuilder
 {
     /**
      * @var array<string, Action[]>
@@ -26,10 +24,10 @@ final class UpdateBuilder implements BuilderInterface
 
     /**
      * @param Path $name
-     * @param int|float|SetValue $value
+     * @param mixed $value
      * @return UpdateBuilder
      */
-    public function add(Path $name, int|float|SetValue $value) : UpdateBuilder
+    public function add(Path $name, mixed $value) : UpdateBuilder
     {
         $this->actions[ActionTypeEnum::add->name][] =
             new Action($name->getNode(), ActionTypeEnum::add, $value);
@@ -39,10 +37,10 @@ final class UpdateBuilder implements BuilderInterface
 
     /**
      * @param Path $name
-     * @param SetValue $value
+     * @param mixed $value
      * @return UpdateBuilder
      */
-    public function delete(Path $name, SetValue $value) : UpdateBuilder
+    public function delete(Path $name, mixed $value) : UpdateBuilder
     {
         $this->actions[ActionTypeEnum::delete->name][] =
             new Action($name->getNode(), ActionTypeEnum::delete, $value);

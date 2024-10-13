@@ -3,8 +3,7 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 
 final readonly class Operation implements EvaluableInterface
 {
@@ -23,6 +22,6 @@ final readonly class Operation implements EvaluableInterface
      */
     public function evaluate(EvaluatorInterface $evaluator): string
     {
-        return $evaluator->evaluateOperand($this);
+        return $evaluator->evaluateOperation($this);
     }
 }

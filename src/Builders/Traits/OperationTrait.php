@@ -3,18 +3,18 @@
 namespace DynaExp\Builders\Traits;
 
 use DynaExp\Builders\Internal\IfNotExists;
+use DynaExp\Builders\Internal\NodeInterface;
 use DynaExp\Builders\Path;
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Interfaces\NodeInterface;
 use DynaExp\Nodes\Operation;
 
 trait OperationTrait
 {
     /**
-     * @param Path|IfNotExists|int|float $value
+     * @param Path|IfNotExists|mixed $value
      * @return Operation
      */
-    public function plus(Path|IfNotExists|int|float $value): Operation
+    public function plus(mixed $value): Operation
     {
         return new Operation(
             $this->node,
@@ -24,10 +24,10 @@ trait OperationTrait
     }
 
     /**
-     * @param Path|IfNotExists|int|float $value
+     * @param Path|IfNotExists|mixed $value
      * @return Operation
      */
-    public function minus(Path|IfNotExists|int|float $value): Operation
+    public function minus(mixed $value): Operation
     {
         return new Operation(
             $this->node,

@@ -1,6 +1,8 @@
 <?php
 
-namespace DynaExp\Interfaces;
+namespace DynaExp\Builders\Internal;
+
+use DynaExp\Nodes\EvaluableInterface;
 
 interface NodeInterface
 {

@@ -14,10 +14,10 @@ final class Size
 
     /**
 
-     * @param Path $name
+     * @param Path $path
      */
-    public function __construct(Path $name)
+    public function __construct(Path $path)
     {
-        $this->node = new SizeNode($name->getNode());
+        $this->node = new SizeNode($path->getNode());
     }
 }

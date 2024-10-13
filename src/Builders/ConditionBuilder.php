@@ -3,10 +3,9 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\ConditionTypeEnum;
-use DynaExp\Interfaces\BuilderInterface;
 use DynaExp\Nodes\Condition;
 
-final class ConditionBuilder implements BuilderInterface
+final class ConditionBuilder
 {
     /**
      * @var Condition
@@ -14,7 +13,7 @@ final class ConditionBuilder implements BuilderInterface
     private Condition $current;
 
     /**
-     * @param Condition|ConditionBuilder|callable(callable(Condition $innerCondition):ConditionBuilder $innerBuilder): ConditionBuilder $condition
+     * @param Condition|ConditionBuilder|callable $condition
      */
     public function __construct(Condition|ConditionBuilder|callable $condition)
     {
@@ -47,9 +46,9 @@ final class ConditionBuilder implements BuilderInterface
 
     /**
      * @param ConditionTypeEnum $glue
-     * @param Condition ...$conditions
+     * @param Condition|ConditionBuilder|callable ...$conditions
      */
-    private function glueConditions(ConditionTypeEnum $glue, Condition ...$conditions): void
+    private function glueConditions(ConditionTypeEnum $glue, Condition|ConditionBuilder|callable ...$conditions): void
     {
         foreach ($conditions as $condition) {
 
@@ -63,13 +62,13 @@ final class ConditionBuilder implements BuilderInterface
     }
  
     /**
-     * @param ConditionBuilder|callable(callable(Condition $innerCondition):ConditionBuilder $innerBuilder): ConditionBuilder $condition
+     * @param ConditionBuilder|callable $condition
      */
     private static function parenthesizeInnerCondition(ConditionBuilder|callable $condition): Condition
     {
         if (is_callable($condition)) {
 
-            $condition = $condition(fn(Condition $innerCondition) => new static($innerCondition));
+            $condition = $condition(fn(Condition $innerCondition) => new self($innerCondition));
 
         }
 

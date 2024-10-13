@@ -3,8 +3,7 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\ActionTypeEnum;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 
 final readonly class ActionsSequence implements EvaluableInterface
 {

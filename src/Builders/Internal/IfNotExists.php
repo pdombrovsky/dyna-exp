@@ -2,11 +2,11 @@
 
 namespace DynaExp\Builders\Internal;
 
+use DynaExp\Builders\Internal\NodeInterface;
 use DynaExp\Builders\Path;
 use DynaExp\Builders\Traits\NodeTrait;
 use DynaExp\Builders\Traits\OperationTrait;
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Interfaces\NodeInterface;
 use DynaExp\Nodes\Operation;
 
 final class IfNotExists implements NodeInterface
@@ -15,11 +15,11 @@ final class IfNotExists implements NodeInterface
     use OperationTrait;
 
     /**
-     * @param Path $name
+     * @param Path $path
      * @param mixed $value
      */
-    public function __construct(Path $name, mixed $value)
+    public function __construct(Path $path, mixed $value)
     {
-        $this->node = new Operation($name->getNode(), OperationTypeEnum::ifNotExists, $value);
+        $this->node = new Operation($path->getNode(), OperationTypeEnum::ifNotExists, $value);
     }
 }

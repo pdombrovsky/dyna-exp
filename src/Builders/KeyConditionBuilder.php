@@ -3,28 +3,26 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
-use DynaExp\Interfaces\BuilderInterface;
-use DynaExp\Interfaces\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 
-use RuntimeException;
+use InvalidArgumentException;
 
-final class KeyConditionBuilder implements BuilderInterface
+final class KeyConditionBuilder
 {
     /**
-     * @var EvaluableInterface
+     * @var KeyCondition
      */
-    private EvaluableInterface $current;
+    private KeyCondition $current;
 
     /**
      * @param KeyCondition $primaryKeyCondition
-     * @throws RuntimeException
+     * @throws InvalidArgumentException
      */
     public function __construct(KeyCondition $primaryKeyCondition)
     {
         if ($primaryKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
 
-            throw new RuntimeException("Equal key condition is allowed for primary key only");
+            throw new InvalidArgumentException("Equal key condition is allowed for primary key only");
 
         }
 
@@ -39,7 +37,7 @@ final class KeyConditionBuilder implements BuilderInterface
     {
         if ($sortKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
 
-            throw new RuntimeException("Condition 'AND' must not be used twice");
+            throw new InvalidArgumentException("Condition 'AND' must not be used twice");
 
         }
 

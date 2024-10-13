@@ -3,39 +3,38 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Builders\Path;
-use DynaExp\Interfaces\BuilderInterface;
-use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Projection;
 
-final class ProjectionBuilder implements BuilderInterface
+final class ProjectionBuilder
 {
     /**
-     * @var EvaluableInterface[]
+     * @var PathNode[]
      */
     private array $nodes;
 
     /**
-     * @param Path ...$names
+     * @param Path ...$paths
      */
-    public function __construct(Path ...$names)
+    public function __construct(Path ...$paths)
     {
         $this->nodes = [];
 
-        foreach ($names as $nameBulder) {
+        foreach ($paths as $path) {
 
-            $this->nodes[] = $nameBulder->getNode();
+            $this->nodes[] = $path->getNode();
         }
     }
 
     /**
-     * @param Path ...$names
+     * @param Path ...$paths
      * @return ProjectionBuilder
      */
-    public function add(Path ...$names) : ProjectionBuilder
+    public function add(Path ...$paths) : ProjectionBuilder
     {
-        foreach ($names as $nameBuilder) {
+        foreach ($paths as $path) {
 
-            $this->nodes[] = $nameBuilder->getNode();
+            $this->nodes[] = $path->getNode();
         }
 
         return $this;

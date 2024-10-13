@@ -2,8 +2,7 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 use DynaExp\Enums\ConditionTypeEnum;
 
 final readonly class Condition implements EvaluableInterface

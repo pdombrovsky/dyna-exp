@@ -1,8 +1,7 @@
 <?php
 
-namespace DynaExp\Interfaces;
+namespace DynaExp\Evaluation;
 
-use Aws\DynamoDb\Marshaler;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\PathNode;
@@ -46,10 +45,10 @@ interface EvaluatorInterface
     function evaluateKeyCondition(KeyCondition $keyConditionNode): string;
 
     /**
-     * @param Operation $operand
+     * @param Operation $operation
      * @return string
      */
-    function evaluateOperand(Operation $operand): string;
+    function evaluateOperation(Operation $operation): string;
 
     /**
      * @param Action $actionNode
@@ -72,10 +71,10 @@ interface EvaluatorInterface
     /**
      * @return array
      */
-    function getExpressionAttributeNames(): array;
+    function getAttributeNameAliases(): array;
 
     /**
      * @return array
      */
-    function getExpressionAttributeValues(Marshaler $marshaler): array;
+    function getAttributeValueAliases(): array;
 }

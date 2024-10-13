@@ -2,16 +2,13 @@
 
 namespace DynaExp\Evaluation;
 
-use Aws\DynamoDb\Marshaler;
 use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
-use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Evaluation\Names;
-use DynaExp\Evaluation\Values;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\Aliases\Names;
+use DynaExp\Evaluation\Aliases\Values;
+use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\PathNode;
@@ -21,6 +18,7 @@ use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Update;
+
 use RuntimeException;
 
 final class Evaluator implements EvaluatorInterface
@@ -151,13 +149,13 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @param Operation $operand
+     * @param Operation $operation
      * @throws RuntimeException
      * @return string
      */
-    public function evaluateOperand(Operation $operand): string
+    public function evaluateOperation(Operation $operation): string
     {
-        $fmtString = match ($operand->type) {
+        $fmtString = match ($operation->type) {
 
             OperationTypeEnum::plusValue => '%s + %s',
             OperationTypeEnum::minusValue => '%s - %s',
@@ -168,12 +166,12 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Operation type is unknown"),
         };
 
-        $leftAlias = $operand->node->evaluate($this);
-        $rightAlias = $operand->value instanceof EvaluableInterface ?
-            $operand->value->evaluate($this) :
-            $this->aliasValues->alias($operand->value);
+        $leftAlias = $operation->node->evaluate($this);
+        $rightAlias = $operation->value instanceof EvaluableInterface ?
+            $operation->value->evaluate($this) :
+            $this->aliasValues->alias($operation->value);
 
-        $aliases = (OperationTypeEnum::listPrepend == $operand->type) ?
+        $aliases = (OperationTypeEnum::listPrepend == $operation->type) ?
             [$rightAlias, $leftAlias] :
             [$leftAlias, $rightAlias];
 
@@ -265,20 +263,16 @@ final class Evaluator implements EvaluatorInterface
     /**
      * @return array
      */
-    public function getExpressionAttributeNames(): array
+    public function getAttributeNameAliases(): array
     {
-        return $this->aliasNames->count() ?
-            [ExpressionTypeEnum::names->value => $this->aliasNames->getMap()] :
-            [];
+        return $this->aliasNames->getMap();
     }
 
     /**
      * @return array
      */
-    public function getExpressionAttributeValues(Marshaler $marshaler): array
+    public function getAttributeValueAliases(): array
     {
-        return $this->aliasValues->count() ?
-            [ExpressionTypeEnum::values->value => $marshaler->marshalItem($this->aliasValues->getMap())] :
-            [];
+        return $this->aliasValues->getMap();
     }
 }
