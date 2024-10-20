@@ -27,7 +27,7 @@ final class Key
      */
     public function equal(mixed $value): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::equalKeyCond, [$value]);
+        return new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $this->currentNode, $value);
     }
 
     /**
@@ -36,7 +36,7 @@ final class Key
      */
     public function lessThan(mixed $value): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::lessThanKeyCond, [$value]);
+        return new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, $this->currentNode, $value);
     }
 
     /**
@@ -45,7 +45,7 @@ final class Key
      */
     public function lessThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::lessThanEqualKeyCond, [$value]);
+        return new KeyCondition(KeyConditionTypeEnum::lessThanEqualKeyCond, $this->currentNode, $value);
     }
 
     /**
@@ -54,7 +54,7 @@ final class Key
      */
     public function greaterThan(mixed $value): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::greaterThanKeyCond, [$value]);
+        return new KeyCondition(KeyConditionTypeEnum::greaterThanKeyCond, $this->currentNode, $value);
     }
 
     /**
@@ -63,7 +63,7 @@ final class Key
      */
     public function greaterThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::greaterThanEqualKeyCond, [$value]);
+        return new KeyCondition(KeyConditionTypeEnum::greaterThanEqualKeyCond, $this->currentNode, $value);
     }
 
     /**
@@ -72,7 +72,7 @@ final class Key
      */
     public function beginsWith(mixed $prefix): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::beginsWithKeyCond, [$prefix]);
+        return new KeyCondition(KeyConditionTypeEnum::beginsWithKeyCond, $this->currentNode, $prefix);
     }
 
     /**
@@ -82,6 +82,6 @@ final class Key
      */
     public function between(mixed $lower, mixed $upper): KeyCondition
     {
-        return new KeyCondition($this->currentNode, KeyConditionTypeEnum::betweenKeyCond, [$lower, $upper]);
+        return new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $this->currentNode, $lower, $upper);
     }
 }

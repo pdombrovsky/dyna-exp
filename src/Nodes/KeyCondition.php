@@ -8,12 +8,17 @@ use DynaExp\Evaluation\EvaluatorInterface;
 final readonly class KeyCondition implements EvaluableInterface
 {
     /**
-     * @param EvaluableInterface $node
-     * @param KeyConditionTypeEnum $type
-     * @param array|EvaluableInterface $right
+     * @var array
      */
-    public function __construct(public EvaluableInterface $node, public KeyConditionTypeEnum $type, public array|EvaluableInterface $right)
+    public array $nodes;
+
+    /**
+     * @param KeyConditionTypeEnum $type
+     * @param mixed ...$nodes
+     */
+    public function __construct(public KeyConditionTypeEnum $type, mixed ...$nodes)
     {
+        $this->nodes = $nodes;
     }
 
     /**

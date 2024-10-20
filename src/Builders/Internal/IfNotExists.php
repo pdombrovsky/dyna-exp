@@ -20,6 +20,6 @@ final class IfNotExists implements NodeInterface
      */
     public function __construct(Path $path, mixed $value)
     {
-        $this->node = new Operation($path->getNode(), OperationTypeEnum::ifNotExists, $value);
+        $this->node = new Operation(OperationTypeEnum::ifNotExists, $path->getNode(), $value);
     }
 }

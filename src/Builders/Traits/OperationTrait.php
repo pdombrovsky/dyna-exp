@@ -17,8 +17,8 @@ trait OperationTrait
     public function plus(mixed $value): Operation
     {
         return new Operation(
-            $this->node,
             OperationTypeEnum::plusValue,
+            $this->node,
             $value instanceof NodeInterface ? $value->getNode() : $value
         );
     }
@@ -30,8 +30,8 @@ trait OperationTrait
     public function minus(mixed $value): Operation
     {
         return new Operation(
-            $this->node,
             OperationTypeEnum::minusValue,
+            $this->node,
             $value instanceof NodeInterface ? $value->getNode() : $value
         );
     }
@@ -43,8 +43,8 @@ trait OperationTrait
     public function listAppend(Path|IfNotExists|array $values): Operation
     {
         return new Operation(
-            $this->node,
             OperationTypeEnum::listAppend,
+            $this->node,
             $values instanceof NodeInterface ? $values->getNode() : $values
         );
     }
@@ -56,8 +56,8 @@ trait OperationTrait
     public function listPrepend(Path|IfNotExists|array $values): Operation
     {
         return new Operation(
-            $this->node,
             OperationTypeEnum::listPrepend,
+            $this->node,
             $values instanceof NodeInterface ? $values->getNode() : $values
         );
     }

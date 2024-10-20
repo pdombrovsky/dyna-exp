@@ -30,7 +30,7 @@ final class UpdateBuilder
     public function add(Path $name, mixed $value) : UpdateBuilder
     {
         $this->actions[ActionTypeEnum::add->name][] =
-            new Action($name->getNode(), ActionTypeEnum::add, $value);
+            new Action(ActionTypeEnum::add, $name->getNode(), $value);
 
         return $this;
     }
@@ -43,7 +43,7 @@ final class UpdateBuilder
     public function delete(Path $name, mixed $value) : UpdateBuilder
     {
         $this->actions[ActionTypeEnum::delete->name][] =
-            new Action($name->getNode(), ActionTypeEnum::delete, $value);
+            new Action(ActionTypeEnum::delete, $name->getNode(),  $value);
 
         return $this;
     }
@@ -55,7 +55,7 @@ final class UpdateBuilder
     public function remove(Path $name) : UpdateBuilder
     {
         $this->actions[ActionTypeEnum::remove->name][] = 
-            new Action($name->getNode(), ActionTypeEnum::remove);
+            new Action(ActionTypeEnum::remove, $name->getNode());
 
         return $this;
     }
@@ -72,7 +72,7 @@ final class UpdateBuilder
         }
 
         $this->actions[ActionTypeEnum::set->name][] = 
-            new Action($name->getNode(), ActionTypeEnum::set, $value);
+            new Action(ActionTypeEnum::set,$name->getNode(), $value);
 
         return $this;
     }

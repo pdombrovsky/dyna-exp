@@ -57,7 +57,7 @@ final class ConditionBuilder
                 $condition = static::parenthesizeInnerCondition($condition);
             }
 
-            $this->current = new Condition($this->current, $glue, $condition);
+            $this->current = new Condition($glue, $this->current, $condition);
         }
     }
  
@@ -72,9 +72,9 @@ final class ConditionBuilder
 
         }
 
-        return new Condition($condition->current, ConditionTypeEnum::parenthesesCond);
+        return new Condition(ConditionTypeEnum::parenthesesCond, $condition->current);
     }
-    
+
     /**
      * @return Condition
      */

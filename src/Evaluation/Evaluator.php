@@ -89,7 +89,7 @@ final class Evaluator implements EvaluatorInterface
             ConditionTypeEnum::betweenCond => '%s BETWEEN %s AND %s',
             ConditionTypeEnum::attrExistsCond => 'attribute_exists (%s)',
             ConditionTypeEnum::attrNotExistsCond => 'attribute_not_exists (%s)',
-            ConditionTypeEnum::inCond => '%s IN (%s)',
+            ConditionTypeEnum::inCond => '%s IN (' . str_repeat('%s, ', count($conditionNode->nodes) - 2) . '%s)',
             ConditionTypeEnum::notCond => 'NOT %s',
             ConditionTypeEnum::andCond => '%s AND %s',
             ConditionTypeEnum::orCond => '%s OR %s',
@@ -98,25 +98,21 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Condition type is unknown"),
         };
 
-        $firstAlias = $conditionNode->node->evaluate($this);
-
-        $secondAlias = match ($conditionNode->type) {
-
-            ConditionTypeEnum::attrExistsCond,
-            ConditionTypeEnum::attrNotExistsCond,
-            ConditionTypeEnum::parenthesesCond,
-            ConditionTypeEnum::notCond => [],
-            ConditionTypeEnum::andCond,
-            ConditionTypeEnum::orCond => [$conditionNode->right->evaluate($this)],
-
-            default => array_map(fn(mixed $value) => $this->aliasValues->alias($value), $conditionNode->right),
-        };
-
-        $aliases = ConditionTypeEnum::inCond !== $conditionNode->type ?
-            [$firstAlias, ...$secondAlias] :
-            [$firstAlias, implode(', ', $secondAlias)];
-
+        $aliases = $this->evaluateNodes($conditionNode->nodes);
+ 
         return sprintf($fmtString, ...$aliases);
+    }
+
+    /**
+     * @param mixed[] $nodes
+     * @return string[]
+     */
+    private function evaluateNodes(array $nodes): array
+    {
+        return array_map(
+            fn (mixed $node) => ($node instanceof EvaluableInterface) ? $node->evaluate($this) : $this->aliasValues->alias($node),
+            $nodes
+        );
     }
 
     /**
@@ -139,13 +135,9 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("KeyCondition type is unknown"),
         };
 
-        $firstAlias = $keyConditionNode->node->evaluate($this);
-        $secondAlias = KeyConditionTypeEnum::andKeyCond === $keyConditionNode->type ?
-            [$keyConditionNode->right->evaluate($this)] :
-            array_map(fn(mixed $value) => $this->aliasValues->alias($value), $keyConditionNode->right);
-
-
-        return sprintf($fmtString, $firstAlias, ...$secondAlias);
+        $aliases = $this->evaluateNodes($keyConditionNode->nodes);
+ 
+        return sprintf($fmtString, ...$aliases);
     }
 
     /**
@@ -166,14 +158,13 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Operation type is unknown"),
         };
 
-        $leftAlias = $operation->node->evaluate($this);
-        $rightAlias = $operation->value instanceof EvaluableInterface ?
-            $operation->value->evaluate($this) :
-            $this->aliasValues->alias($operation->value);
+        $aliases = $this->evaluateNodes($operation->nodes);
 
-        $aliases = (OperationTypeEnum::listPrepend == $operation->type) ?
-            [$rightAlias, $leftAlias] :
-            [$leftAlias, $rightAlias];
+        if (OperationTypeEnum::listPrepend == $operation->type) {
+
+            $aliases = array_reverse($aliases);
+
+        }
 
         return sprintf($fmtString, ...$aliases);
     }
@@ -195,19 +186,8 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Action is unknown"),
         };
 
-        $leftAlias = $actionNode->left->evaluate($this);
-
-        if (ActionTypeEnum::remove === $actionNode->type) {
-            $aliases = [$leftAlias];
-        } else {
-
-            $rightAlias = $actionNode->right instanceof EvaluableInterface ?
-                $actionNode->right->evaluate($this) :
-                $this->aliasValues->alias($actionNode->right);
-                
-            $aliases = [$leftAlias, $rightAlias];
-        }
-
+        $aliases = $this->evaluateNodes($actionNode->nodes);
+ 
         return sprintf($fmtString, ...$aliases);
     }
 
@@ -227,7 +207,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Update operation type is unknown"),
         };
 
-        $evaluatedNodes = array_map(fn(EvaluableInterface $action) => $action->evaluate($this), $sequence->actions);
+        $evaluatedNodes = $this->evaluateNodes($sequence->actions);
  
         return $type . ' ' . implode(', ', $evaluatedNodes);
     }
@@ -238,10 +218,7 @@ final class Evaluator implements EvaluatorInterface
      */
     public function evaluateUpdate(Update $updateNode): string
     {
-        $evaluatedActionSequences = array_map(
-            fn (EvaluableInterface $node) => $node->evaluate($this),
-            $updateNode->sequences
-        );
+        $evaluatedActionSequences = $this->evaluateNodes($updateNode->sequences);
 
         return implode(' ', $evaluatedActionSequences);
     }
@@ -252,10 +229,7 @@ final class Evaluator implements EvaluatorInterface
      */
     public function evaluateProjection(Projection $projectionNode): string
     {
-        $evaluatedProjections = array_map(
-            fn (EvaluableInterface $node) => $node->evaluate($this),
-            $projectionNode->attributes
-        );
+        $evaluatedProjections = $this->evaluateNodes($projectionNode->attributes);
 
         return implode(', ', $evaluatedProjections);
     }

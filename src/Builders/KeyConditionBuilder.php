@@ -41,7 +41,7 @@ final class KeyConditionBuilder
 
         }
 
-        $this->current = new KeyCondition($this->current, KeyConditionTypeEnum::andKeyCond, $sortKeyCondition);
+        $this->current = new KeyCondition(KeyConditionTypeEnum::andKeyCond, $this->current, $sortKeyCondition);
     }
 
     /**

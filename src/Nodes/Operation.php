@@ -8,12 +8,17 @@ use DynaExp\Evaluation\EvaluatorInterface;
 final readonly class Operation implements EvaluableInterface
 {
     /**
-     * @param EvaluableInterface $node
-     * @param OperationTypeEnum $type
-     * @param mixed $value
+     * @var array
      */
-    public function __construct(public EvaluableInterface $node, public OperationTypeEnum $type, public mixed $value = null)
-    {  
+    public array $nodes;
+
+    /**
+     * @param OperationTypeEnum $type
+     * @param mixed ...$nodes
+     */
+    public function __construct(public OperationTypeEnum $type, mixed ...$nodes)
+    { 
+        $this->nodes = $nodes;
     }
 
     /**

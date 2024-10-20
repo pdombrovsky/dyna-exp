@@ -13,7 +13,7 @@ trait ConditionTrait
      */
     public function equal(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::equalCond, [$value]);
+        return new Condition(ConditionTypeEnum::equalCond,$this->getNode(), $value);
     }
 
     /**
@@ -22,7 +22,7 @@ trait ConditionTrait
      */
     public function notEqual(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::notEqualCond, [$value]);
+        return new Condition(ConditionTypeEnum::notEqualCond,$this->getNode(), $value);
     }
 
     /**
@@ -31,7 +31,7 @@ trait ConditionTrait
      */
     public function lessThan(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::lessThanCond, [$value]);
+        return new Condition(ConditionTypeEnum::lessThanCond,$this->getNode(), $value);
     }
 
     /**
@@ -40,7 +40,7 @@ trait ConditionTrait
      */
     public function lessThanEqual(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::lessThanEqualCond, [$value]);
+        return new Condition(ConditionTypeEnum::lessThanEqualCond, $this->getNode(), $value);
     }
 
     /**
@@ -49,7 +49,7 @@ trait ConditionTrait
      */
     public function greaterThan(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::greaterThanCond, [$value]);
+        return new Condition(ConditionTypeEnum::greaterThanCond,$this->getNode(), $value);
     }
 
     /**
@@ -58,7 +58,7 @@ trait ConditionTrait
      */
     public function greaterThanEqual(mixed $value): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::greaterThanEqualCond, [$value]);
+        return new Condition(ConditionTypeEnum::greaterThanEqualCond,$this->getNode(), $value);
     }
 
     /**
@@ -68,7 +68,7 @@ trait ConditionTrait
      */
     public function between(mixed $lower, mixed $upper): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::betweenCond, [$lower, $upper]);
+        return new Condition(ConditionTypeEnum::betweenCond, $this->getNode(), $lower, $upper);
     }
 
     /**
@@ -78,7 +78,7 @@ trait ConditionTrait
      */
     public function notBetween(mixed $lower, mixed $upper): Condition
     {
-        return new Condition($this->between($lower, $upper), ConditionTypeEnum::notCond);
+        return new Condition(ConditionTypeEnum::notCond, $this->between($lower, $upper));
     }
 
     /**
@@ -87,7 +87,7 @@ trait ConditionTrait
      */
     public function in(mixed ...$range): Condition
     {
-        return new Condition($this->getNode(), ConditionTypeEnum::inCond, $range);
+        return new Condition(ConditionTypeEnum::inCond, $this->getNode(), ...$range);
     }
 
     /**
@@ -97,6 +97,6 @@ trait ConditionTrait
 
     public function notIn(mixed ...$range): Condition
     {
-        return new Condition($this->in($range), ConditionTypeEnum::notCond);
+        return new Condition(ConditionTypeEnum::notCond, $this->in($range));
     }
 }

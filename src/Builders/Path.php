@@ -101,7 +101,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function attributeExists(): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::attrExistsCond);
+        return new Condition(ConditionTypeEnum::attrExistsCond,$this->node);
     }
 
     /**
@@ -111,7 +111,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function attributeNotExists(): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::attrNotExistsCond);
+        return new Condition(ConditionTypeEnum::attrNotExistsCond,$this->node);
     }
 
     /**
@@ -122,7 +122,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function attributeType(AttributeTypeEnum $type): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::attrTypeCond, [$type->value]);
+        return new Condition(ConditionTypeEnum::attrTypeCond, $this->node, $type->value);
     }
 
     /**
@@ -133,7 +133,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function beginsWith(mixed $prefix): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::beginsWithCond, [$prefix]);
+        return new Condition(ConditionTypeEnum::beginsWithCond,$this->node, $prefix);
     }
 
     /**
@@ -144,7 +144,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function notBeginsWith(mixed $prefix): Condition
     {
-        return new Condition($this->beginsWith($prefix), ConditionTypeEnum::notCond);
+        return new Condition(ConditionTypeEnum::notCond, $this->beginsWith($prefix));
     }
 
     /**
@@ -155,7 +155,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function contains(mixed $value): Condition
     {
-        return new Condition($this->node, ConditionTypeEnum::containsCond, [$value]);
+        return new Condition(ConditionTypeEnum::containsCond, $this->node, $value);
     }
 
     /**
@@ -166,7 +166,7 @@ final class Path implements NodeInterface, Stringable
      */
     public function notContains(mixed $value): Condition
     {
-        return new Condition($this->contains($value), ConditionTypeEnum::notCond);
+        return new Condition(ConditionTypeEnum::notCond, $this->contains($value));
     }
 
     /**
