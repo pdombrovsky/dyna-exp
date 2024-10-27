@@ -8,17 +8,16 @@ use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Evaluation\Aliases\Names;
 use DynaExp\Evaluation\Aliases\Values;
-use DynaExp\Nodes\EvaluableInterface;
+use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
-use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Update;
-
 use RuntimeException;
 
 final class Evaluator implements EvaluatorInterface
@@ -40,33 +39,35 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @param PathNode $dotNode
+     * @param Path $path
      * @return string
      */
-    public function evaluatePathNode(PathNode $pathNode): string
+    public function evaluatePath(Path $path): string
     {
-        $left = $pathNode->left instanceof EvaluableInterface ?
-            $pathNode->left->evaluate($this) :
-            $this->aliasNames->alias($pathNode->left);
+        $parts = [];
+        $lastIndex = -1;
+        foreach ($path->segments as $segment) {
 
-        if (null === $pathNode->right) {
-            return $left;
+            if (is_int($segment)) {
+
+                $parts[$lastIndex] .= "[$segment]";
+
+            } else {
+
+                $parts[++$lastIndex] = $this->aliasNames->alias($segment);
+            }
         }
-
-        $right = $pathNode->right instanceof EvaluableInterface ?
-            '.' . $pathNode->right->evaluate($this) :
-            "[$pathNode->right]";
-
-        return "$left$right";
+        
+        return implode('.', $parts);
     }
 
     /**
-     * @param Size $sizeNode
+     * @param Size $size
      * @return string
      */
-    public function evaluateSize(Size $sizeNode): string
+    public function evaluateSize(Size $size): string
     {
-        return "size ({$sizeNode->node->evaluate($this)})";
+        return "size ({$size->node->evaluate($this)})";
     }
 
     /**
@@ -98,7 +99,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Condition type is unknown"),
         };
 
-        $aliases = $this->evaluateNodes($conditionNode->nodes);
+        $aliases = $this->evaluateNodeOrAliasValue($conditionNode->nodes);
  
         return sprintf($fmtString, ...$aliases);
     }
@@ -107,7 +108,7 @@ final class Evaluator implements EvaluatorInterface
      * @param mixed[] $nodes
      * @return string[]
      */
-    private function evaluateNodes(array $nodes): array
+    private function evaluateNodeOrAliasValue(array $nodes): array
     {
         return array_map(
             fn (mixed $node) => ($node instanceof EvaluableInterface) ? $node->evaluate($this) : $this->aliasValues->alias($node),
@@ -135,7 +136,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("KeyCondition type is unknown"),
         };
 
-        $aliases = $this->evaluateNodes($keyConditionNode->nodes);
+        $aliases = $this->evaluateNodeOrAliasValue($keyConditionNode->nodes);
  
         return sprintf($fmtString, ...$aliases);
     }
@@ -158,7 +159,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Operation type is unknown"),
         };
 
-        $aliases = $this->evaluateNodes($operation->nodes);
+        $aliases = $this->evaluateNodeOrAliasValue($operation->nodes);
 
         if (OperationTypeEnum::listPrepend == $operation->type) {
 
@@ -186,7 +187,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Action is unknown"),
         };
 
-        $aliases = $this->evaluateNodes($actionNode->nodes);
+        $aliases = $this->evaluateNodeOrAliasValue($actionNode->nodes);
  
         return sprintf($fmtString, ...$aliases);
     }
@@ -207,7 +208,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Update operation type is unknown"),
         };
 
-        $evaluatedNodes = $this->evaluateNodes($sequence->actions);
+        $evaluatedNodes = $this->evaluateNodeOrAliasValue($sequence->actions);
  
         return $type . ' ' . implode(', ', $evaluatedNodes);
     }
@@ -218,7 +219,7 @@ final class Evaluator implements EvaluatorInterface
      */
     public function evaluateUpdate(Update $updateNode): string
     {
-        $evaluatedActionSequences = $this->evaluateNodes($updateNode->sequences);
+        $evaluatedActionSequences = $this->evaluateNodeOrAliasValue($updateNode->sequences);
 
         return implode(' ', $evaluatedActionSequences);
     }
@@ -229,7 +230,10 @@ final class Evaluator implements EvaluatorInterface
      */
     public function evaluateProjection(Projection $projectionNode): string
     {
-        $evaluatedProjections = $this->evaluateNodes($projectionNode->attributes);
+        $evaluatedProjections = array_map(
+            fn (mixed $node) => $node->evaluate($this),
+            $projectionNode->attributes
+        );
 
         return implode(', ', $evaluatedProjections);
     }

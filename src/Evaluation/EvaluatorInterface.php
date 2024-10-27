@@ -2,9 +2,9 @@
 
 namespace DynaExp\Evaluation;
 
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
-use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Projection;
@@ -15,16 +15,16 @@ use DynaExp\Nodes\Update;
 interface EvaluatorInterface
 {
     /**
-     * @param PathNode $pathNode
+     * @param Path $path
      * @return string
      */
-    function evaluatePathNode(PathNode $pathNode): string;
+    function evaluatePath(Path $path): string;
 
     /**
-     * @param Size $sizeNode
+     * @param Size $size
      * @return string
      */
-    function evaluateSize(Size $sizeNode): string;
+    function evaluateSize(Size $size): string;
 
     /**
      * @param ActionsSequence $sequence

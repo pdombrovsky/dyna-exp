@@ -1,10 +1,9 @@
 <?php
 
-namespace DynaExp\Builders\Traits;
+namespace DynaExp\Factories\Traits;
 
-use DynaExp\Builders\Internal\IfNotExists;
-use DynaExp\Builders\Internal\NodeInterface;
-use DynaExp\Builders\Path;
+use DynaExp\Factories\IfNotExists;
+use DynaExp\Factories\Path;
 use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Nodes\Operation;
 
@@ -18,8 +17,8 @@ trait OperationTrait
     {
         return new Operation(
             OperationTypeEnum::plusValue,
-            $this->node,
-            $value instanceof NodeInterface ? $value->getNode() : $value
+            $this->pathNode,
+            $value instanceof Path || $value instanceof IfNotExists ? $value->pathNode : $value
         );
     }
 
@@ -31,8 +30,8 @@ trait OperationTrait
     {
         return new Operation(
             OperationTypeEnum::minusValue,
-            $this->node,
-            $value instanceof NodeInterface ? $value->getNode() : $value
+            $this->pathNode,
+            $value instanceof Path || $value instanceof IfNotExists ? $value->pathNode : $value
         );
     }
 
@@ -44,8 +43,8 @@ trait OperationTrait
     {
         return new Operation(
             OperationTypeEnum::listAppend,
-            $this->node,
-            $values instanceof NodeInterface ? $values->getNode() : $values
+            $this->pathNode,
+            $values instanceof Path || $values instanceof IfNotExists ? $values->pathNode : $values
         );
     }
 
@@ -57,8 +56,8 @@ trait OperationTrait
     {
         return new Operation(
             OperationTypeEnum::listPrepend,
-            $this->node,
-            $values instanceof NodeInterface ? $values->getNode() : $values
+            $this->pathNode,
+            $values instanceof Path || $values instanceof IfNotExists ? $values->pathNode : $values
         );
     }
 }

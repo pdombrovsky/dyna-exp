@@ -1,24 +1,29 @@
 <?php
 
-namespace DynaExp\Builders;
+namespace DynaExp\Factories;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
+use InvalidArgumentException;
 
 final class Key
 {
     /**
-     * @var PathNode
+     * @var Path
      */
-    private PathNode $currentNode;
-    
+    private Path $pathNode;
+
     /**
      * @param string $key
      */
-    public function __construct(private string $key)
+    public function __construct(string $key)
     {
-        $this->currentNode = new PathNode($key);
+        if ($key === '') {
+            throw new InvalidArgumentException("Key attribute name cannot be empty");
+        }
+
+        $this->pathNode = new Path([$key]);
     }
 
     /**
@@ -27,7 +32,7 @@ final class Key
      */
     public function equal(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $this->currentNode, $value);
+        return new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $this->pathNode, $value);
     }
 
     /**
@@ -36,7 +41,7 @@ final class Key
      */
     public function lessThan(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, $this->currentNode, $value);
+        return new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, $this->pathNode, $value);
     }
 
     /**
@@ -45,7 +50,7 @@ final class Key
      */
     public function lessThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::lessThanEqualKeyCond, $this->currentNode, $value);
+        return new KeyCondition(KeyConditionTypeEnum::lessThanEqualKeyCond, $this->pathNode, $value);
     }
 
     /**
@@ -54,7 +59,7 @@ final class Key
      */
     public function greaterThan(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::greaterThanKeyCond, $this->currentNode, $value);
+        return new KeyCondition(KeyConditionTypeEnum::greaterThanKeyCond, $this->pathNode, $value);
     }
 
     /**
@@ -63,7 +68,7 @@ final class Key
      */
     public function greaterThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::greaterThanEqualKeyCond, $this->currentNode, $value);
+        return new KeyCondition(KeyConditionTypeEnum::greaterThanEqualKeyCond, $this->pathNode, $value);
     }
 
     /**
@@ -72,7 +77,7 @@ final class Key
      */
     public function beginsWith(mixed $prefix): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::beginsWithKeyCond, $this->currentNode, $prefix);
+        return new KeyCondition(KeyConditionTypeEnum::beginsWithKeyCond, $this->pathNode, $prefix);
     }
 
     /**
@@ -82,6 +87,6 @@ final class Key
      */
     public function between(mixed $lower, mixed $upper): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $this->currentNode, $lower, $upper);
+        return new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $this->pathNode, $lower, $upper);
     }
 }

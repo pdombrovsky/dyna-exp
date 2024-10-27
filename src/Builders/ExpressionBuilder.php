@@ -98,7 +98,6 @@ final class ExpressionBuilder
 
                 $components[$expressionType->value] = $evaluated;
             }
-           
         }
 
         if ($expressionAttributeNames = $evaluator->getAttributeNameAliases()) {

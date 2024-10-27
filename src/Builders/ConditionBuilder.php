@@ -4,6 +4,7 @@ namespace DynaExp\Builders;
 
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
+use UnexpectedValueException;
 
 final class ConditionBuilder
 {
@@ -13,20 +14,18 @@ final class ConditionBuilder
     private Condition $current;
 
     /**
-     * @param Condition|ConditionBuilder|callable $condition
+     * @param Condition|callable(): Condition $condition
      */
-    public function __construct(Condition|ConditionBuilder|callable $condition)
+    public function __construct(Condition|callable $condition)
     {
-        $this->current = ($condition instanceof Condition) ?
-            $condition :
-            static::parenthesizeInnerCondition($condition);
+        $this->current = is_callable($condition) ? static::parenthesizeInnerCondition($condition) : $condition;
     }
 
     /**
-     * @param Condition|ConditionBuilder|callable ...$conditions
+     * @param Condition|callable(): Condition ...$conditions
      * @return ConditionBuilder
      */
-    public function and(Condition|ConditionBuilder|callable ...$conditions): ConditionBuilder
+    public function and(Condition|callable ...$conditions): ConditionBuilder
     {
         $this->glueConditions(ConditionTypeEnum::andCond, ...$conditions);
 
@@ -34,10 +33,10 @@ final class ConditionBuilder
     }
 
     /**
-     * @param Condition|ConditionBuilder|callable ...$conditions
+     * @param Condition|callable(): Condition ...$conditions
      * @return ConditionBuilder
      */
-    public function or(Condition|ConditionBuilder|callable ...$conditions): ConditionBuilder
+    public function or(Condition|callable ...$conditions): ConditionBuilder
     {
         $this->glueConditions(ConditionTypeEnum::orCond, ...$conditions);
 
@@ -46,13 +45,13 @@ final class ConditionBuilder
 
     /**
      * @param ConditionTypeEnum $glue
-     * @param Condition|ConditionBuilder|callable ...$conditions
+     * @param Condition|callable(): Condition ...$conditions
      */
-    private function glueConditions(ConditionTypeEnum $glue, Condition|ConditionBuilder|callable ...$conditions): void
+    private function glueConditions(ConditionTypeEnum $glue, Condition|callable ...$conditions): void
     {
         foreach ($conditions as $condition) {
 
-            if (! $condition instanceof Condition) {
+            if (is_callable($condition)) {
 
                 $condition = static::parenthesizeInnerCondition($condition);
             }
@@ -62,17 +61,25 @@ final class ConditionBuilder
     }
  
     /**
-     * @param ConditionBuilder|callable $condition
+     * @param callable(): Condition $condition
      */
-    private static function parenthesizeInnerCondition(ConditionBuilder|callable $condition): Condition
+    private static function parenthesizeInnerCondition(callable $condition): Condition
     {
-        if (is_callable($condition)) {
+        $innerCondition = $condition();
+        
+        if (! $innerCondition instanceof Condition) {
 
-            $condition = $condition(fn(Condition $innerCondition) => new self($innerCondition));
+            $type = gettype($innerCondition);
 
+            if ($type === 'object' ) {
+
+                $type = $innerCondition::class;
+            }
+
+            throw new UnexpectedValueException(sprintf("Callback returned an invalid result type: expected '%s', got: '%s'", Condition::class, $type));
         }
 
-        return new Condition(ConditionTypeEnum::parenthesesCond, $condition->current);
+        return new Condition(ConditionTypeEnum::parenthesesCond, $innerCondition);
     }
 
     /**

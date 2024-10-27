@@ -15,18 +15,18 @@ final class KeyConditionBuilder
     private KeyCondition $current;
 
     /**
-     * @param KeyCondition $primaryKeyCondition
+     * @param KeyCondition $partitionKeyCondition
      * @throws InvalidArgumentException
      */
-    public function __construct(KeyCondition $primaryKeyCondition)
+    public function __construct(KeyCondition $partitionKeyCondition)
     {
-        if ($primaryKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
+        if ($partitionKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
 
             throw new InvalidArgumentException("Equal key condition is allowed for primary key only");
 
         }
 
-        $this->current = $primaryKeyCondition;
+        $this->current = $partitionKeyCondition;
     }
 
     /**
