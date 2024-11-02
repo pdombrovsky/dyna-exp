@@ -2,15 +2,15 @@
 
 namespace DynaExp\Context;
 
-use Aws\DynamoDb\Marshaler;
 use DynaExp\Enums\ExpressionTypeEnum;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Exceptions\UnexpectedValueException;
+use DynaExp\Nodes\EvaluableInterface;
+
 
 final class ExpressionContext
 {
     /**
-     * @param array<string, EvaluableInterface> $components
+     * @param array<string, EvaluableInterface|mixed> $components
      */
     public function __construct(private array $components)
     {
@@ -26,19 +26,24 @@ final class ExpressionContext
     }
 
     /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
+     * @return array<string,string|mixed>
      */
-    public function expressions(EvaluatorInterface $evaluator, Marshaler $marshaler): array
+    public function toArray(?callable $valuesTransformator = null): array
     {
-        $evaluated = array_map(
-            fn(EvaluableInterface $component) => $component->evaluate($evaluator),
-            $this->components
-        );
+        $components = $this->components;
 
-        $evaluated += $evaluator->getExpressionAttributeNames();
-        $evaluated += $evaluator->getExpressionAttributeValues($marshaler);
+        if (is_callable($valuesTransformator) && $this->has(ExpressionTypeEnum::values)) {
 
-        return $evaluated;
+            $transformedValues = $valuesTransformator($this->components[ExpressionTypeEnum::values->value]);
+
+            if (!is_array($transformedValues)) {
+
+                throw new UnexpectedValueException("Callback returned an invalid result type: expected 'array', got: " . gettype($transformedValues));
+            }
+
+            $components[ExpressionTypeEnum::values->value] = $transformedValues;
+        }
+
+        return $components;
     }
 }

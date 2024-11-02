@@ -2,9 +2,7 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
-
+use DynaExp\Evaluation\EvaluatorInterface;
 
 final readonly class Update implements EvaluableInterface
 {

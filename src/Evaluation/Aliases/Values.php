@@ -1,6 +1,6 @@
 <?php
 
-namespace DynaExp\Evaluation;
+namespace DynaExp\Evaluation\Aliases;
 
 final class Values
 {
@@ -28,7 +28,7 @@ final class Values
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     public function getMap(): array
     {

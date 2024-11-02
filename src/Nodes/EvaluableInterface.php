@@ -1,8 +1,8 @@
 <?php
 
-namespace DynaExp\Interfaces;
+namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 
 interface EvaluableInterface
 {

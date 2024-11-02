@@ -2,77 +2,79 @@
 
 namespace DynaExp\Builders;
 
-use DynaExp\Builders\ConditionBuilder;
-use DynaExp\Builders\KeyConditionBuilder;
-use DynaExp\Builders\ProjectionBuilder;
-use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Context\ExpressionContext;
 use DynaExp\Enums\ExpressionTypeEnum;
-use DynaExp\Interfaces\BuilderInterface;
+use DynaExp\Evaluation\EvaluatorFactory;
+use DynaExp\Evaluation\EvaluatorFactoryInterface;
+use DynaExp\Nodes\Condition;
+use DynaExp\Nodes\EvaluableInterface;
+use DynaExp\Nodes\KeyCondition;
+use DynaExp\Nodes\Projection;
+use DynaExp\Nodes\Update;
 
 final class ExpressionBuilder
 {
     /**
-     * @var array<string, BuilderInterface>
+     * @var array<string, EvaluableInterface>
      */
-    private array $builders;
+    private array $evaluables;
 
-    public function __construct()
+    public function __construct(private EvaluatorFactoryInterface $factory = new EvaluatorFactory())
     {
-        $this->builders = [];
+        $this->evaluables = [];
     }
 
     /**
-     * @param ConditionBuilder $conditionBuilder
+     * @param Condition $condition
      * @return ExpressionBuilder
      */
-    public function setConditionBuilder(ConditionBuilder $conditionBuilder): ExpressionBuilder
+    public function setCondition(Condition $condition): ExpressionBuilder
     {
-        $this->builders[ExpressionTypeEnum::condition->value] = $conditionBuilder;
+        $this->evaluables[ExpressionTypeEnum::condition->name] = $condition;
 
         return $this;
     }
 
     /**
-     * @param ConditionBuilder $conditionBuilder
+     * @param Condition $condition
      * @return ExpressionBuilder
      */
-    public function setFilterBuilder(ConditionBuilder $conditionBuilder): ExpressionBuilder
+    public function setFilter(Condition $condition): ExpressionBuilder
     {
-        $this->builders[ExpressionTypeEnum::filter->value] = $conditionBuilder;
+        $this->evaluables[ExpressionTypeEnum::filter->name] = $condition;
 
         return $this;
     }
 
     /**
-     * @param ProjectionBuilder $projectionBuilder
+     * @param Projection $projection
      * @return ExpressionBuilder
      */
-    public function setProjectionBuilder(ProjectionBuilder $projectionBuilder): ExpressionBuilder
+    public function setProjection(Projection $projection): ExpressionBuilder
     {
-        $this->builders[ExpressionTypeEnum::projection->value] = $projectionBuilder;
+        $this->evaluables[ExpressionTypeEnum::projection->name] = $projection;
 
         return $this;
     }
 
     /**
-     * @param KeyConditionBuilder $keyConditionBuilder
+     * @param KeyCondition $keyCondition
      * @return ExpressionBuilder
      */
-    public function setKeyConditionBuilder(KeyConditionBuilder $keyConditionBuilder): ExpressionBuilder
+    public function setKeyCondition(KeyCondition $keyCondition): ExpressionBuilder
     {
-        $this->builders[ExpressionTypeEnum::keyCondition->value] = $keyConditionBuilder;
+        $this->evaluables[ExpressionTypeEnum::keyCondition->name] = $keyCondition;
 
         return $this;
     }
 
     /**
-     * @param UpdateBuilder $updateBuilder
+     * @param Update $update
      * @return ExpressionBuilder
      */
-    public function setUpdateBuilder(UpdateBuilder $updateBuilder): ExpressionBuilder
+    public function setUpdate(Update $update): ExpressionBuilder
     {
-        $this->builders[ExpressionTypeEnum::update->value] = $updateBuilder;
+        $this->evaluables[ExpressionTypeEnum::update->name] = $update;
 
         return $this;
     }
@@ -82,16 +84,32 @@ final class ExpressionBuilder
      */
     public function build(): ExpressionContext
     {
+        $evaluator = $this->factory->make();
+
         $components = [];
 
-        foreach ($this->builders as $type => $builder) {
+        foreach (ExpressionTypeEnum::cases() as $expressionType) {
 
-            if ($evaluableExpression = $builder->build()) {
+            $evaluable = $this->evaluables[$expressionType->name] ?? null;
 
-                $components[$type] = $evaluableExpression;
+            $evaluated = $evaluable?->evaluate($evaluator);
+
+            if ($evaluated) {
+
+                $components[$expressionType->value] = $evaluated;
             }
         }
 
+        if ($expressionAttributeNames = $evaluator->getAttributeNameAliases()) {
+
+            $components[ExpressionTypeEnum::names->value] = $expressionAttributeNames;
+        }
+
+        if ($expressionAttributeValues = $evaluator->getAttributeValueAliases()) {
+
+            $components[ExpressionTypeEnum::values->value] = $expressionAttributeValues;
+        }
+     
         return new ExpressionContext($components);
     }
 }

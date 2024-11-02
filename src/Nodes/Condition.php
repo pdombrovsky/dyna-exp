@@ -2,19 +2,23 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Interfaces\EvaluatorInterface;
-use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 use DynaExp\Enums\ConditionTypeEnum;
 
 final readonly class Condition implements EvaluableInterface
 {
     /**
-     * @param EvaluableInterface $node
-     * @param ConditionTypeEnum $type
-     * @param null|array|EvaluableInterface $right
+     * @var array<EvaluableInterface|mixed>
      */
-    public function __construct(public EvaluableInterface $node, public ConditionTypeEnum $type, public null|array|EvaluableInterface $right = null)
+    public array $nodes; 
+
+    /**
+     * @param ConditionTypeEnum $type
+     * @param mixed ...$nodes
+     */
+    public function __construct(public ConditionTypeEnum $type, mixed ...$nodes)
     {
+        $this->nodes = $nodes;
     }
 
     /**

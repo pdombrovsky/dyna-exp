@@ -3,18 +3,22 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\ActionTypeEnum;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\EvaluatorInterface;
 
 final readonly class Action implements EvaluableInterface
 {
     /**
-     * @param EvaluableInterface $left
-     * @param ActionTypeEnum $type
-     * @param mixed $right
+     * @var array
      */
-    public function __construct(public EvaluableInterface $left, public ActionTypeEnum $type, public mixed $right = null)
-    {  
+    public array $nodes;
+
+    /**
+     * @param ActionTypeEnum $type
+     * @param mixed ...$nodes
+     */
+    public function __construct(public ActionTypeEnum $type, mixed ...$nodes)
+    {
+        $this->nodes = $nodes;
     }
 
     /**

@@ -3,32 +3,29 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
-use DynaExp\Interfaces\BuilderInterface;
-use DynaExp\Interfaces\EvaluableInterface;
+use DynaExp\Exceptions\InvalidArgumentException;
 use DynaExp\Nodes\KeyCondition;
 
-use RuntimeException;
-
-final class KeyConditionBuilder implements BuilderInterface
+final class KeyConditionBuilder
 {
     /**
-     * @var EvaluableInterface
+     * @var KeyCondition
      */
-    private EvaluableInterface $current;
+    private KeyCondition $current;
 
     /**
-     * @param KeyCondition $primaryKeyCondition
-     * @throws RuntimeException
+     * @param KeyCondition $partitionKeyCondition
+     * @throws InvalidArgumentException
      */
-    public function __construct(KeyCondition $primaryKeyCondition)
+    public function __construct(KeyCondition $partitionKeyCondition)
     {
-        if ($primaryKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
+        if ($partitionKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
 
-            throw new RuntimeException("Equal key condition is allowed for primary key only");
+            throw new InvalidArgumentException("Equal key condition is allowed for primary key only");
 
         }
 
-        $this->current = $primaryKeyCondition;
+        $this->current = $partitionKeyCondition;
     }
 
     /**
@@ -39,11 +36,11 @@ final class KeyConditionBuilder implements BuilderInterface
     {
         if ($sortKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
 
-            throw new RuntimeException("Condition 'AND' must not be used twice");
+            throw new InvalidArgumentException("Condition 'AND' must not be used twice");
 
         }
 
-        $this->current = new KeyCondition($this->current, KeyConditionTypeEnum::andKeyCond, $sortKeyCondition);
+        $this->current = new KeyCondition(KeyConditionTypeEnum::andKeyCond, $this->current, $sortKeyCondition);
     }
 
     /**

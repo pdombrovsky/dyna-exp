@@ -2,26 +2,23 @@
 
 namespace DynaExp\Evaluation;
 
-use Aws\DynamoDb\Marshaler;
 use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
-use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Evaluation\Names;
-use DynaExp\Evaluation\Values;
-use DynaExp\Interfaces\EvaluableInterface;
-use DynaExp\Interfaces\EvaluatorInterface;
+use DynaExp\Evaluation\Aliases\Names;
+use DynaExp\Evaluation\Aliases\Values;
+use DynaExp\Exceptions\RuntimeException;
+use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
-use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Update;
-use RuntimeException;
 
 final class Evaluator implements EvaluatorInterface
 {
@@ -42,33 +39,35 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @param PathNode $dotNode
+     * @param Path $path
      * @return string
      */
-    public function evaluatePathNode(PathNode $pathNode): string
+    public function evaluatePath(Path $path): string
     {
-        $left = $pathNode->left instanceof EvaluableInterface ?
-            $pathNode->left->evaluate($this) :
-            $this->aliasNames->alias($pathNode->left);
+        $parts = [];
+        $lastIndex = -1;
+        foreach ($path->segments as $segment) {
 
-        if (null === $pathNode->right) {
-            return $left;
+            if (is_int($segment)) {
+
+                $parts[$lastIndex] .= "[$segment]";
+
+            } else {
+
+                $parts[++$lastIndex] = $this->aliasNames->alias($segment);
+            }
         }
-
-        $right = $pathNode->right instanceof EvaluableInterface ?
-            '.' . $pathNode->right->evaluate($this) :
-            "[$pathNode->right]";
-
-        return "$left$right";
+        
+        return implode('.', $parts);
     }
 
     /**
-     * @param Size $sizeNode
+     * @param Size $size
      * @return string
      */
-    public function evaluateSize(Size $sizeNode): string
+    public function evaluateSize(Size $size): string
     {
-        return "size ({$sizeNode->node->evaluate($this)})";
+        return "size ({$size->node->evaluate($this)})";
     }
 
     /**
@@ -91,7 +90,7 @@ final class Evaluator implements EvaluatorInterface
             ConditionTypeEnum::betweenCond => '%s BETWEEN %s AND %s',
             ConditionTypeEnum::attrExistsCond => 'attribute_exists (%s)',
             ConditionTypeEnum::attrNotExistsCond => 'attribute_not_exists (%s)',
-            ConditionTypeEnum::inCond => '%s IN (%s)',
+            ConditionTypeEnum::inCond => '%s IN (' . str_repeat('%s, ', count($conditionNode->nodes) - 2) . '%s)',
             ConditionTypeEnum::notCond => 'NOT %s',
             ConditionTypeEnum::andCond => '%s AND %s',
             ConditionTypeEnum::orCond => '%s OR %s',
@@ -100,25 +99,21 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Condition type is unknown"),
         };
 
-        $firstAlias = $conditionNode->node->evaluate($this);
-
-        $secondAlias = match ($conditionNode->type) {
-
-            ConditionTypeEnum::attrExistsCond,
-            ConditionTypeEnum::attrNotExistsCond,
-            ConditionTypeEnum::parenthesesCond,
-            ConditionTypeEnum::notCond => [],
-            ConditionTypeEnum::andCond,
-            ConditionTypeEnum::orCond => [$conditionNode->right->evaluate($this)],
-
-            default => array_map(fn(mixed $value) => $this->aliasValues->alias($value), $conditionNode->right),
-        };
-
-        $aliases = ConditionTypeEnum::inCond !== $conditionNode->type ?
-            [$firstAlias, ...$secondAlias] :
-            [$firstAlias, implode(', ', $secondAlias)];
-
+        $aliases = $this->evaluateNodeOrAliasValue($conditionNode->nodes);
+ 
         return sprintf($fmtString, ...$aliases);
+    }
+
+    /**
+     * @param mixed[] $nodes
+     * @return string[]
+     */
+    private function evaluateNodeOrAliasValue(array $nodes): array
+    {
+        return array_map(
+            fn (mixed $node) => ($node instanceof EvaluableInterface) ? $node->evaluate($this) : $this->aliasValues->alias($node),
+            $nodes
+        );
     }
 
     /**
@@ -141,23 +136,19 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("KeyCondition type is unknown"),
         };
 
-        $firstAlias = $keyConditionNode->node->evaluate($this);
-        $secondAlias = KeyConditionTypeEnum::andKeyCond === $keyConditionNode->type ?
-            [$keyConditionNode->right->evaluate($this)] :
-            array_map(fn(mixed $value) => $this->aliasValues->alias($value), $keyConditionNode->right);
-
-
-        return sprintf($fmtString, $firstAlias, ...$secondAlias);
+        $aliases = $this->evaluateNodeOrAliasValue($keyConditionNode->nodes);
+ 
+        return sprintf($fmtString, ...$aliases);
     }
 
     /**
-     * @param Operation $operand
+     * @param Operation $operation
      * @throws RuntimeException
      * @return string
      */
-    public function evaluateOperand(Operation $operand): string
+    public function evaluateOperation(Operation $operation): string
     {
-        $fmtString = match ($operand->type) {
+        $fmtString = match ($operation->type) {
 
             OperationTypeEnum::plusValue => '%s + %s',
             OperationTypeEnum::minusValue => '%s - %s',
@@ -168,20 +159,19 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Operation type is unknown"),
         };
 
-        $leftAlias = $operand->node->evaluate($this);
-        $rightAlias = $operand->value instanceof EvaluableInterface ?
-            $operand->value->evaluate($this) :
-            $this->aliasValues->alias($operand->value);
+        $aliases = $this->evaluateNodeOrAliasValue($operation->nodes);
 
-        $aliases = (OperationTypeEnum::listPrepend == $operand->type) ?
-            [$rightAlias, $leftAlias] :
-            [$leftAlias, $rightAlias];
+        if (OperationTypeEnum::listPrepend == $operation->type) {
+
+            $aliases = array_reverse($aliases);
+
+        }
 
         return sprintf($fmtString, ...$aliases);
     }
 
     /**
-     * @param Action $operationNode
+     * @param Action $actionNode
      * @throws RuntimeException
      * @return string
      */
@@ -197,19 +187,8 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Action is unknown"),
         };
 
-        $leftAlias = $actionNode->left->evaluate($this);
-
-        if (ActionTypeEnum::remove === $actionNode->type) {
-            $aliases = [$leftAlias];
-        } else {
-
-            $rightAlias = $actionNode->right instanceof EvaluableInterface ?
-                $actionNode->right->evaluate($this) :
-                $this->aliasValues->alias($actionNode->right);
-                
-            $aliases = [$leftAlias, $rightAlias];
-        }
-
+        $aliases = $this->evaluateNodeOrAliasValue($actionNode->nodes);
+ 
         return sprintf($fmtString, ...$aliases);
     }
 
@@ -229,7 +208,7 @@ final class Evaluator implements EvaluatorInterface
             default => throw new RuntimeException("Update operation type is unknown"),
         };
 
-        $evaluatedNodes = array_map(fn(EvaluableInterface $action) => $action->evaluate($this), $sequence->actions);
+        $evaluatedNodes = $this->evaluateNodeOrAliasValue($sequence->actions);
  
         return $type . ' ' . implode(', ', $evaluatedNodes);
     }
@@ -240,10 +219,7 @@ final class Evaluator implements EvaluatorInterface
      */
     public function evaluateUpdate(Update $updateNode): string
     {
-        $evaluatedActionSequences = array_map(
-            fn (EvaluableInterface $node) => $node->evaluate($this),
-            $updateNode->sequences
-        );
+        $evaluatedActionSequences = $this->evaluateNodeOrAliasValue($updateNode->sequences);
 
         return implode(' ', $evaluatedActionSequences);
     }
@@ -255,7 +231,7 @@ final class Evaluator implements EvaluatorInterface
     public function evaluateProjection(Projection $projectionNode): string
     {
         $evaluatedProjections = array_map(
-            fn (EvaluableInterface $node) => $node->evaluate($this),
+            fn (mixed $node) => $node->evaluate($this),
             $projectionNode->attributes
         );
 
@@ -263,22 +239,18 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @return array
+     * @return array<string,string>
      */
-    public function getExpressionAttributeNames(): array
+    public function getAttributeNameAliases(): array
     {
-        return $this->aliasNames->count() ?
-            [ExpressionTypeEnum::names->value => $this->aliasNames->getMap()] :
-            [];
+        return $this->aliasNames->getMap();
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
-    public function getExpressionAttributeValues(Marshaler $marshaler): array
+    public function getAttributeValueAliases(): array
     {
-        return $this->aliasValues->count() ?
-            [ExpressionTypeEnum::values->value => $marshaler->marshalItem($this->aliasValues->getMap())] :
-            [];
+        return $this->aliasValues->getMap();
     }
 }
