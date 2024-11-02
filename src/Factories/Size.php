@@ -10,7 +10,7 @@ final class Size
 {
     use ConditionTrait;
 
-    public SizeNode $pathNode;
+    private SizeNode $pathNode;
 
     /**
      * @param Path $path

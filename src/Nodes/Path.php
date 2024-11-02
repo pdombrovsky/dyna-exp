@@ -9,7 +9,7 @@ use Stringable;
 final readonly class Path implements Stringable, EvaluableInterface
 {
     /**
-     * Constructs a new Path instance.
+     * @param array<string|int> $segments
      */
     public function __construct(public array $segments)
     {

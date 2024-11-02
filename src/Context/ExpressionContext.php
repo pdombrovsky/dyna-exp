@@ -3,13 +3,14 @@
 namespace DynaExp\Context;
 
 use DynaExp\Enums\ExpressionTypeEnum;
+use DynaExp\Exceptions\UnexpectedValueException;
+use DynaExp\Nodes\EvaluableInterface;
 
-use UnexpectedValueException;
 
 final class ExpressionContext
 {
     /**
-     * @param array $components
+     * @param array<string, EvaluableInterface|mixed> $components
      */
     public function __construct(private array $components)
     {
@@ -25,7 +26,7 @@ final class ExpressionContext
     }
 
     /**
-     * @return array
+     * @return array<string,string|mixed>
      */
     public function toArray(?callable $valuesTransformator = null): array
     {

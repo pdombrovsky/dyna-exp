@@ -28,7 +28,7 @@ final class Values
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     public function getMap(): array
     {

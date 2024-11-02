@@ -8,6 +8,7 @@ use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Evaluation\Aliases\Names;
 use DynaExp\Evaluation\Aliases\Values;
+use DynaExp\Exceptions\RuntimeException;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
 use DynaExp\Nodes\Condition;
@@ -18,7 +19,6 @@ use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Update;
-use RuntimeException;
 
 final class Evaluator implements EvaluatorInterface
 {
@@ -171,7 +171,7 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @param Action $operationNode
+     * @param Action $actionNode
      * @throws RuntimeException
      * @return string
      */
@@ -239,7 +239,7 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @return array
+     * @return array<string,string>
      */
     public function getAttributeNameAliases(): array
     {
@@ -247,7 +247,7 @@ final class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     public function getAttributeValueAliases(): array
     {

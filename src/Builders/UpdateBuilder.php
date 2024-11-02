@@ -3,11 +3,8 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\ActionTypeEnum;
-use DynaExp\Factories\IfNotExists;
-use DynaExp\Factories\Path;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
-use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Update;
 
 final class UpdateBuilder
@@ -23,57 +20,16 @@ final class UpdateBuilder
     }
 
     /**
-     * @param Path $name
-     * @param mixed $value
+     * @param Action ...$action
      * @return UpdateBuilder
      */
-    public function add(Path $name, mixed $value) : UpdateBuilder
+    public function add(Action ...$action) : UpdateBuilder
     {
-        $this->actions[ActionTypeEnum::add->name][] =
-            new Action(ActionTypeEnum::add, $name->pathNode, $value);
+        foreach ($action as $current) {
 
-        return $this;
-    }
-
-    /**
-     * @param Path $name
-     * @param mixed $value
-     * @return UpdateBuilder
-     */
-    public function delete(Path $name, mixed $value) : UpdateBuilder
-    {
-        $this->actions[ActionTypeEnum::delete->name][] =
-            new Action(ActionTypeEnum::delete, $name->pathNode,  $value);
-
-        return $this;
-    }
-
-    /**
-     * @param Path $name
-     * @return UpdateBuilder
-     */
-    public function remove(Path $name) : UpdateBuilder
-    {
-        $this->actions[ActionTypeEnum::remove->name][] = 
-            new Action(ActionTypeEnum::remove, $name->pathNode);
-
-        return $this;
-    }
-
-    /**
-     * @param Path $name
-     * @param Operation|Path|IfNotExists|mixed $value
-     * @return UpdateBuilder
-     */
-    public function set(Path $name, mixed $value): UpdateBuilder
-    {
-        if ($value instanceof Path || $value instanceof IfNotExists) {
-
-            $value = $value->pathNode;
+            $this->actions[$current->type->name][] = $current;
         }
 
-        $this->actions[ActionTypeEnum::set->name][] = 
-            new Action(ActionTypeEnum::set,$name->pathNode, $value);
 
         return $this;
     }

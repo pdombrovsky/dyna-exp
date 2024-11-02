@@ -69,12 +69,12 @@ interface EvaluatorInterface
     function evaluateUpdate(Update $updateNode): string;
 
     /**
-     * @return array
+     * @return array<string,string>
      */
     function getAttributeNameAliases(): array;
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     function getAttributeValueAliases(): array;
 }

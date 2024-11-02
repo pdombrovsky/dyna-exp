@@ -3,8 +3,8 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\ConditionTypeEnum;
+use DynaExp\Exceptions\UnexpectedValueException;
 use DynaExp\Nodes\Condition;
-use UnexpectedValueException;
 
 final class ConditionBuilder
 {
@@ -69,14 +69,7 @@ final class ConditionBuilder
         
         if (! $innerCondition instanceof Condition) {
 
-            $type = gettype($innerCondition);
-
-            if ($type === 'object' ) {
-
-                $type = $innerCondition::class;
-            }
-
-            throw new UnexpectedValueException(sprintf("Callback returned an invalid result type: expected '%s', got: '%s'", Condition::class, $type));
+            throw new UnexpectedValueException(sprintf("Callback returned an invalid result type: expected '%s', got: '%s'", Condition::class, gettype($innerCondition)));
         }
 
         return new Condition(ConditionTypeEnum::parenthesesCond, $innerCondition);

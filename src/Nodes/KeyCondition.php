@@ -8,7 +8,7 @@ use DynaExp\Evaluation\EvaluatorInterface;
 final readonly class KeyCondition implements EvaluableInterface
 {
     /**
-     * @var array
+     * @var array<EvaluableInterface|string>
      */
     public array $nodes;
 

@@ -3,12 +3,13 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Factories\Path;
+use DynaExp\Nodes\Path as PathNode;
 use DynaExp\Nodes\Projection;
 
 final class ProjectionBuilder
 {
     /**
-     * @var Path[]
+     * @var PathNode[]
      */
     private array $nodes;
 
@@ -21,7 +22,7 @@ final class ProjectionBuilder
 
         foreach ($paths as $path) {
 
-            $this->nodes[] = $path->pathNode;
+            $this->nodes[] = $path->projection();
         }
     }
 
@@ -33,7 +34,7 @@ final class ProjectionBuilder
     {
         foreach ($paths as $path) {
 
-            $this->nodes[] = $path->pathNode;
+            $this->nodes[] = $path->projection();
         }
 
         return $this;

@@ -3,9 +3,8 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
+use DynaExp\Exceptions\InvalidArgumentException;
 use DynaExp\Nodes\KeyCondition;
-
-use InvalidArgumentException;
 
 final class KeyConditionBuilder
 {

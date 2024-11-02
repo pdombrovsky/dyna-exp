@@ -2,25 +2,31 @@
 
 namespace DynaExp\Factories;
 
+use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
+use DynaExp\Exceptions\InvalidArgumentException;
+use DynaExp\Factories\Abstracts\AbstractNode;
 use DynaExp\Factories\IfNotExists;
 use DynaExp\Factories\Size;
 use DynaExp\Factories\Traits\ConditionTrait;
 use DynaExp\Factories\Traits\OperationTrait;
+use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Condition;
+use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Path as PathNode;
-use InvalidArgumentException;
 
-final readonly class Path
+final readonly class Path extends AbstractNode
 {
     use ConditionTrait;
     use OperationTrait;
 
-    public PathNode $pathNode;
+    private PathNode $pathNode;
 
     /**
-     * Constructs a new Path instance.
+     * @param string $attribute
+     * @param string|int ...$segments
+     * @throws InvalidArgumentException
      */
     public function __construct(string $attribute, string|int ...$segments)
     {
@@ -42,7 +48,7 @@ final readonly class Path
     private static function validatePath(string $attribute, string|int ...$segments): string
     {
         if ($attribute === '') {
-            return "Attribute can not be empty string";
+            return "Attribute can not be empty string.";
         }
 
         $checkedSegments = [];
@@ -56,7 +62,7 @@ final readonly class Path
             }
 
             if ($segment === '') {
-                
+
                 $errorMessage = 'Path segment can not be empty string.';
                 break;
             }
@@ -87,7 +93,7 @@ final readonly class Path
 
         $segments = [];
         $buffer = '';
-        $prevoiusChar = '';
+        $previousChar = '';
         $shouldProcessBuffer = false;
         $bracketLevel = 0;
 
@@ -101,9 +107,9 @@ final readonly class Path
             switch ($char) {
                 case '.':
                     if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s" , self::processedSymbolsMessage($pathString, $i)));
+                        throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
-                    if ($buffer === '' && ']' !== $prevoiusChar) {
+                    if ($buffer === '' && ']' !== $previousChar) {
                         throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
 
@@ -113,7 +119,7 @@ final readonly class Path
                     if ($bracketLevel > 0) {
                         throw new InvalidArgumentException(sprintf("Nested brackets are not allowed. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
-                    if (in_array($prevoiusChar, ['', '.'])) {
+                    if (in_array($previousChar, ['', '.'])) {
                         throw new InvalidArgumentException(sprintf("Index used without a preceding attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
 
@@ -127,7 +133,7 @@ final readonly class Path
                     if ($buffer === '') {
                         throw new InvalidArgumentException(sprintf("Empty index found. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
-                    if (!ctype_digit($buffer)) {
+                    if (! ctype_digit($buffer)) {
                         throw new InvalidArgumentException(sprintf("Only non-negative integers are allowed in index, '$buffer' given. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
 
@@ -138,15 +144,15 @@ final readonly class Path
                     break;
                 default:
                     $buffer .= $char;
-                    $shouldProcessBuffer = true;    
+                    $shouldProcessBuffer = true;
             }
 
-            if (!$shouldProcessBuffer && $buffer !== '') {
+            if (! $shouldProcessBuffer && $buffer !== '') {
                 $segments[] = $buffer;
                 $buffer = '';
             }
 
-            $prevoiusChar = $char;
+            $previousChar = $char;
             $i++;
         }
 
@@ -174,13 +180,21 @@ final readonly class Path
     }
 
     /**
+     * @return \DynaExp\Nodes\Path
+     */
+    public function projection(): PathNode
+    {
+        return $this->pathNode;
+    }
+
+    /**
      * Creates a condition to check if the attribute exists.
      *
      * @return Condition
      */
     public function attributeExists(): Condition
     {
-        return new Condition(ConditionTypeEnum::attrExistsCond,$this->pathNode);
+        return new Condition(ConditionTypeEnum::attrExistsCond, $this->pathNode);
     }
 
     /**
@@ -190,7 +204,7 @@ final readonly class Path
      */
     public function attributeNotExists(): Condition
     {
-        return new Condition(ConditionTypeEnum::attrNotExistsCond,$this->pathNode);
+        return new Condition(ConditionTypeEnum::attrNotExistsCond, $this->pathNode);
     }
 
     /**
@@ -212,7 +226,7 @@ final readonly class Path
      */
     public function beginsWith(mixed $prefix): Condition
     {
-        return new Condition(ConditionTypeEnum::beginsWithCond,$this->pathNode, $prefix);
+        return new Condition(ConditionTypeEnum::beginsWithCond, $this->pathNode, $prefix);
     }
 
     /**
@@ -248,7 +262,6 @@ final readonly class Path
         return new Condition(ConditionTypeEnum::notCond, $this->contains($value));
     }
 
-
     /**
      * Retrieves the size of the attribute.
      *
@@ -268,5 +281,45 @@ final readonly class Path
     public function ifNotExists(mixed $value): IfNotExists
     {
         return new IfNotExists($this->pathNode, $value);
+    }
+
+    /**
+     * @param mixed $value
+     * @return Action
+     */
+    public function add(mixed $value): Action
+    {
+        return new Action(ActionTypeEnum::add, $this->pathNode, $value);
+    }
+
+    /**
+     * @param mixed $value
+     * @return Action
+     */
+    public function delete(mixed $value): Action
+    {
+        return new Action(ActionTypeEnum::delete, $this->pathNode, $value);
+    }
+
+    /**
+     * @return Action
+     */
+    public function remove(): Action
+    {
+        return new Action(ActionTypeEnum::remove, $this->pathNode);
+    }
+
+    /**
+     * @param Operation|Path|IfNotExists|mixed $value
+     * @return  Action
+     */
+    public function set(mixed $value): Action
+    {
+        if ($value instanceof AbstractNode) {
+
+            $value = $value->getNode();
+        }
+
+        return new Action(ActionTypeEnum::set, $this->pathNode, $value);
     }
 }

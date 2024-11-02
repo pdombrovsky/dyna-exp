@@ -34,7 +34,7 @@ final class Names
     }
 
     /**
-     * @return array
+     * @return array<string,string>
      */
     public function getMap(): array
     {

@@ -8,7 +8,7 @@ use DynaExp\Enums\ConditionTypeEnum;
 final readonly class Condition implements EvaluableInterface
 {
     /**
-     * @var array
+     * @var array<EvaluableInterface|mixed>
      */
     public array $nodes; 
 
