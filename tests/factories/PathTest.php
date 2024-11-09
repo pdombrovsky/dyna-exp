@@ -7,6 +7,9 @@ use PHPUnit\Framework\TestCase;
 
 final class PathTest extends TestCase
 {
+    /**
+     * @return array
+     */
     public static function validPathsCreationProvider(): array
     {
         return [
@@ -18,13 +21,21 @@ final class PathTest extends TestCase
         ];
     }
 
+    /**
+     * @param string $inputPath
+     * @param string $expectedOutput
+     * @return void
+     */
     #[DataProvider('validPathsCreationProvider')]
     public function testValidPathsCreation(string $inputPath, string $expectedOutput)
     {
         $path = Path::fromString($inputPath);
-        $this->assertSame($expectedOutput, $path->projection()->__toString());
+        $this->assertSame($expectedOutput, $path->project()->__toString());
     }
 
+    /**
+     * @return array
+     */
     public static function validPathsProvider(): array
     {
         return [
@@ -37,13 +48,22 @@ final class PathTest extends TestCase
         ];
     }
 
+    /**
+     * @param string $attribue
+     * @param array $segments
+     * @param string $expectedOutput
+     * @return void
+     */
     #[DataProvider('validPathsProvider')]
     public function testValidPaths(string $attribue, array $segments, string $expectedOutput)
     {
         $path = new Path($attribue, ...$segments);
-        $this->assertSame($expectedOutput, $path->projection()->__toString());
+        $this->assertSame($expectedOutput, $path->project()->__toString());
     }
 
+    /**
+     * @return array
+     */
     public static function invalidPathsCreationProvider(): array
     {
         return [
@@ -61,7 +81,11 @@ final class PathTest extends TestCase
         ];
     }
 
-
+    /**
+     * @param string $inputPath
+     * @param string $expectedMessage
+     * @return void
+     */
     #[DataProvider('invalidPathsCreationProvider')]
     public function testInvalidPathsCreation(string $inputPath, string $expectedMessage)
     {
@@ -70,6 +94,9 @@ final class PathTest extends TestCase
         Path::fromString($inputPath);
     }
 
+    /**
+     * @return array
+     */
     public static function invalidPathsProvider(): array
     {
         return [
@@ -79,6 +106,12 @@ final class PathTest extends TestCase
         ];
     }
 
+    /**
+     * @param string $attribue
+     * @param array $segments
+     * @param string $expectedMessage
+     * @return void
+     */
     #[DataProvider('invalidPathsProvider')]
     public function testInvalidPaths(string $attribue, array $segments, string $expectedMessage)
     {

@@ -182,7 +182,7 @@ final readonly class Path extends AbstractNode
     /**
      * @return \DynaExp\Nodes\Path
      */
-    public function projection(): PathNode
+    public function project(): PathNode
     {
         return $this->pathNode;
     }

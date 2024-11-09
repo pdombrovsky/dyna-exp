@@ -22,7 +22,7 @@ final class ProjectionBuilder
 
         foreach ($paths as $path) {
 
-            $this->nodes[] = $path->projection();
+            $this->nodes[] = $path->project();
         }
     }
 
@@ -34,7 +34,7 @@ final class ProjectionBuilder
     {
         foreach ($paths as $path) {
 
-            $this->nodes[] = $path->projection();
+            $this->nodes[] = $path->project();
         }
 
         return $this;

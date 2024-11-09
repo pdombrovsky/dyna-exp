@@ -3,16 +3,22 @@
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Enums\KeyConditionTypeEnum;
+use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Evaluation\Evaluator;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\KeyCondition;
+use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Size;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class EvaluatorTest extends TestCase
+require_once 'EvaluatorTestTrait.php';
+
+final class EvaluatorSimpleTest extends TestCase
 {
+    use EvaluatorTestTrait;
+
     public function testEvaluatePath()
     {
         $path = new Path(['attribute', 'nested1', 2, 'nested2']);
@@ -275,7 +281,7 @@ final class EvaluatorTest extends TestCase
                             new Condition(ConditionTypeEnum::lessThanCond, $path, 0)
                         ),
                     )
-                    ),
+                ),
                 'NOT (#0.#1[0].#2[3] > :0 OR #0.#1[0].#2[3] < :1)',
                 [
                     '#0' => 'attribute',
@@ -294,22 +300,7 @@ final class EvaluatorTest extends TestCase
     #[DataProvider('conditionProvider')]
     public function testEvaluateCondition(Condition $condition, string $evaluatedCondition, array $aliasNames, array $aliasValues)
     {
-        $evaluator = new Evaluator();
-
-        $this->assertSame(
-            $evaluatedCondition,
-            $condition->evaluate($evaluator)
-        );
-
-        $this->assertSame(
-            $aliasNames,
-            $evaluator->getAttributeNameAliases()
-        );
-
-        $this->assertSame(
-            $aliasValues,
-            $evaluator->getAttributeValueAliases()
-        );
+        $this->testEvaluate($condition, $evaluatedCondition, $aliasNames, $aliasValues);
     }
 
     public static function keyConditionProvider(): array
@@ -410,21 +401,104 @@ final class EvaluatorTest extends TestCase
     #[DataProvider('keyConditionProvider')]
     public function testEvaluateKeyCondition(KeyCondition $condition, string $evaluatedCondition, array $aliasNames, array $aliasValues)
     {
-        $evaluator = new Evaluator();
+        $this->testEvaluate($condition, $evaluatedCondition, $aliasNames, $aliasValues);
+    }
 
-        $this->assertSame(
-            $evaluatedCondition,
-            $condition->evaluate($evaluator)
-        );
+    public static function operationProvider(): array
+    {
+        $path = new Path(['someAttribute', 1, 'nestedAttribute']);
 
-        $this->assertSame(
-            $aliasNames,
-            $evaluator->getAttributeNameAliases()
-        );
+        return [
+            [
+                new Operation(OperationTypeEnum::plusValue, $path, 123),
+                '#0[1].#1 + :0',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                ],
+                [
+                    ':0' => 123,
+                ]
+            ],
+            [
+                new Operation(OperationTypeEnum::plusValue, $path, new Path(['otherAttibute'])),
+                '#0[1].#1 + #2',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                    '#2' => 'otherAttibute',
+                ],
+                []
+            ],
+            [
+                new Operation(OperationTypeEnum::minusValue, $path, 123),
+                '#0[1].#1 - :0',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                ],
+                [
+                    ':0' => 123,
+                ]
+            ],
+            [
+                new Operation(OperationTypeEnum::minusValue, $path, new Path(['otherAttibute'])),
+                '#0[1].#1 - #2',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                    '#2' => 'otherAttibute',
+                ],
+                []
+            ],
+            [
+                new Operation(OperationTypeEnum::listAppend, $path, [1,2,3]),
+                'list_append(#0[1].#1, :0)',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                ],
+                [
+                    ':0' => [1,2,3],
+                ]
+            ],
+            [
+                new Operation(OperationTypeEnum::listAppend, $path, new Path(['otherAttibute'])),
+                'list_append(#0[1].#1, #2)',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                    '#2' => 'otherAttibute',
+                ],
+                []
+            ],
+            [
+                new Operation(OperationTypeEnum::listPrepend, $path, [1,2,3]),
+                'list_append(:0, #0[1].#1)',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                ],
+                [
+                    ':0' => [1,2,3],
+                ]
+            ],
+            [
+                new Operation(OperationTypeEnum::listPrepend, $path, new Path(['otherAttibute'])),
+                'list_append(#2, #0[1].#1)',
+                [
+                    '#0' => 'someAttribute',
+                    '#1' => 'nestedAttribute',
+                    '#2' => 'otherAttibute',
+                ],
+                []
+            ]
+        ];
+    }
 
-        $this->assertSame(
-            $aliasValues,
-            $evaluator->getAttributeValueAliases()
-        );
+    #[DataProvider('operationProvider')]
+    public function testEvaluateOperation(Operation $operation, string $evaluatedOperation, array $aliasNames, array $aliasValues)
+    {
+        $this->testEvaluate($operation, $evaluatedOperation, $aliasNames, $aliasValues);
     }
 }
