@@ -117,15 +117,16 @@ final class EvaluatorComplexTest extends TestCase
                 ]
             ],
             [
-                $somePath->set($somePath->ifNotExists(2)->plus(3)),
-                '#0[1].#1 = if_not_exists(#0[1].#1, :0) + :1',
+                $somePath->set($somePath->ifNotExists(2)->plus($anotherPath->ifNotExists(4))),
+                '#0[1].#1 = if_not_exists(#0[1].#1, :0) + if_not_exists(#2, :1)',
                 [
                     '#0' => 'someAttribute',
                     '#1' => 'nestedAttribute',
+                    '#2' => 'anotherAttribute',
                 ],
                 [
                     ':0' => 2,
-                    ':1' => 3,
+                    ':1' => 4,
                 ]
             ],
             [
