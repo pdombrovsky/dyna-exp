@@ -19,7 +19,7 @@ final class ExpressionBuilder
      */
     private array $evaluables;
 
-    public function __construct(private EvaluatorFactoryInterface $factory = new EvaluatorFactory())
+    public function __construct()
     {
         $this->evaluables = [];
     }
@@ -80,11 +80,12 @@ final class ExpressionBuilder
     }
 
     /**
+     * @param EvaluatorFactoryInterface $factory
      * @return ExpressionContext
      */
-    public function build(): ExpressionContext
+    public function build(EvaluatorFactoryInterface $factory = new EvaluatorFactory()): ExpressionContext
     {
-        $evaluator = $this->factory->make();
+        $evaluator = $factory->make();
 
         $components = [];
 
