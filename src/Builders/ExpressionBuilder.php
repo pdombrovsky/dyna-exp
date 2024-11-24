@@ -15,20 +15,20 @@ use DynaExp\Nodes\Update;
 final class ExpressionBuilder
 {
     /**
-     * @var array<string, EvaluableInterface>
+     * @var array<string, null|EvaluableInterface>
      */
     private array $evaluables;
 
-    public function __construct(private EvaluatorFactoryInterface $factory = new EvaluatorFactory())
+    public function __construct()
     {
         $this->evaluables = [];
     }
 
     /**
-     * @param Condition $condition
+     * @param ?Condition $condition
      * @return ExpressionBuilder
      */
-    public function setCondition(Condition $condition): ExpressionBuilder
+    public function setCondition(?Condition $condition): ExpressionBuilder
     {
         $this->evaluables[ExpressionTypeEnum::condition->name] = $condition;
 
@@ -36,10 +36,10 @@ final class ExpressionBuilder
     }
 
     /**
-     * @param Condition $condition
+     * @param ?Condition $condition
      * @return ExpressionBuilder
      */
-    public function setFilter(Condition $condition): ExpressionBuilder
+    public function setFilter(?Condition $condition): ExpressionBuilder
     {
         $this->evaluables[ExpressionTypeEnum::filter->name] = $condition;
 
@@ -47,10 +47,10 @@ final class ExpressionBuilder
     }
 
     /**
-     * @param Projection $projection
+     * @param ?Projection $projection
      * @return ExpressionBuilder
      */
-    public function setProjection(Projection $projection): ExpressionBuilder
+    public function setProjection(?Projection $projection): ExpressionBuilder
     {
         $this->evaluables[ExpressionTypeEnum::projection->name] = $projection;
 
@@ -58,10 +58,10 @@ final class ExpressionBuilder
     }
 
     /**
-     * @param KeyCondition $keyCondition
+     * @param ?KeyCondition $keyCondition
      * @return ExpressionBuilder
      */
-    public function setKeyCondition(KeyCondition $keyCondition): ExpressionBuilder
+    public function setKeyCondition(?KeyCondition $keyCondition): ExpressionBuilder
     {
         $this->evaluables[ExpressionTypeEnum::keyCondition->name] = $keyCondition;
 
@@ -69,10 +69,10 @@ final class ExpressionBuilder
     }
 
     /**
-     * @param Update $update
+     * @param ?Update $update
      * @return ExpressionBuilder
      */
-    public function setUpdate(Update $update): ExpressionBuilder
+    public function setUpdate(?Update $update): ExpressionBuilder
     {
         $this->evaluables[ExpressionTypeEnum::update->name] = $update;
 
@@ -80,11 +80,12 @@ final class ExpressionBuilder
     }
 
     /**
+     * @param EvaluatorFactoryInterface $factory
      * @return ExpressionContext
      */
-    public function build(): ExpressionContext
+    public function build(EvaluatorFactoryInterface $factory = new EvaluatorFactory()): ExpressionContext
     {
-        $evaluator = $this->factory->make();
+        $evaluator = $factory->make();
 
         $components = [];
 

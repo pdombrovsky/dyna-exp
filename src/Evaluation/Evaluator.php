@@ -20,7 +20,7 @@ use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Update;
 
-final class Evaluator implements EvaluatorInterface
+class Evaluator implements EvaluatorInterface
 {
     /**
      * @var Names
