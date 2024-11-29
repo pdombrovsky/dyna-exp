@@ -38,10 +38,10 @@ trait OperationTrait
     }
 
     /**
-     * @param Path|IfNotExists|array<mixed> $values
+     * @param Path|IfNotExists|mixed $values
      * @return Operation
      */
-    public function listAppend(Path|IfNotExists|array $values): Operation
+    public function listAppend(mixed $values): Operation
     {
         return new Operation(
             OperationTypeEnum::listAppend,
@@ -51,10 +51,10 @@ trait OperationTrait
     }
 
     /**
-     * @param Path|IfNotExists|array<mixed> $values
+     * @param Path|IfNotExists|mixed $values
      * @return Operation
      */
-    public function listPrepend(Path|IfNotExists|array $values): Operation
+    public function listPrepend(mixed $values): Operation
     {
         return new Operation(
             OperationTypeEnum::listPrepend,
