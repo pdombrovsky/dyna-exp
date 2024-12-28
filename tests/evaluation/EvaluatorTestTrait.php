@@ -1,5 +1,7 @@
 <?php
 
+namespace DynaExp\Tests\Evaluation;
+
 use DynaExp\Evaluation\Evaluator;
 use DynaExp\Nodes\EvaluableInterface;
 

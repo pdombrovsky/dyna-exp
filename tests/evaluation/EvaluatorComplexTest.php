@@ -1,13 +1,13 @@
 <?php
 
+namespace DynaExp\Tests\Evaluation;
+
 use DynaExp\Factories\Path;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Projection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-
-require_once 'EvaluatorTestTrait.php';
 
 final class EvaluatorComplexTest extends TestCase
 {
@@ -83,7 +83,7 @@ final class EvaluatorComplexTest extends TestCase
     }
 
     /**
-     * @param DynaExp\Nodes\Operation $operation
+     * @param \DynaExp\Nodes\Operation $operation
      * @param string $evaluatedOperation
      * @param array $aliasNames
      * @param array $aliasValues
@@ -164,7 +164,7 @@ final class EvaluatorComplexTest extends TestCase
     }
 
     /**
-     * @param DynaExp\Nodes\Action $action
+     * @param \DynaExp\Nodes\Action $action
      * @param string $evaluatedAction
      * @param array $aliasNames
      * @param array $aliasValues
@@ -219,7 +219,7 @@ final class EvaluatorComplexTest extends TestCase
     }
 
     /**
-     * @param DynaExp\Nodes\Projection $projection
+     * @param \DynaExp\Nodes\Projection $projection
      * @param string $evaluatedProjection
      * @param array $aliasNames
      * @param array $aliasValues

@@ -1,7 +1,10 @@
 <?php
 
+namespace DynaExp\Tests\Evaluation\Aliases;
+
 use DynaExp\Evaluation\Aliases\Values;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class ValuesTest extends TestCase
 {

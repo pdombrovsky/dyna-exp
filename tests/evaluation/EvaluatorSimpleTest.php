@@ -1,5 +1,7 @@
 <?php
 
+namespace DynaExp\Tests\Evaluation;
+
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Enums\KeyConditionTypeEnum;
@@ -12,8 +14,6 @@ use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Size;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-
-require_once 'EvaluatorTestTrait.php';
 
 final class EvaluatorSimpleTest extends TestCase
 {
