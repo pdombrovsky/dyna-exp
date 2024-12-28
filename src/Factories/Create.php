@@ -11,7 +11,7 @@ final class Create
      * @param string $attribute
      * @return \DynaExp\Factories\Key
      */
-    public function key(string $attribute): Key
+    public static function key(string $attribute): Key
     {
         return new Key($attribute);
     }
@@ -21,7 +21,7 @@ final class Create
      * @param string|int ...$segments
      * @return \DynaExp\Factories\Path
      */
-    public function path(string $attribute, string|int ...$segments): Path
+    public static function path(string $attribute, string|int ...$segments): Path
     {
         return new Path($attribute, ...$segments);
     }
