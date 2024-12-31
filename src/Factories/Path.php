@@ -120,6 +120,17 @@ final readonly class Path extends AbstractNode
     }
 
     /**
+     * Creates a condition to ensure the attribute type is not the specified type.
+     *
+     * @param AttributeTypeEnum $type The expected attribute type.
+     * @return Condition
+     */
+    public function attributeTypeNot(AttributeTypeEnum $type): Condition
+    {
+        return new Condition(ConditionTypeEnum::notCond, $this->attributeType($type));
+    }
+
+    /**
      * Creates a condition to check if the attribute begins with a specified prefix.
      *
      * @param mixed $prefix The prefix to check.
@@ -131,7 +142,7 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * Creates a condition to check if the attribute begins with a specified prefix.
+     * Creates a condition to check if the attribute not begins with a specified prefix.
      *
      * @param mixed $prefix The prefix to check.
      * @return Condition
@@ -185,7 +196,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param mixed $value
+     * Creates an action to add a specified value to the attribute.
+     *
+     * @param mixed $value The value to add.
      * @return Action
      */
     public function add(mixed $value): Action
@@ -194,7 +207,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param mixed $value
+     * Creates an action to delete a specified value from the attribute.
+     *
+     * @param mixed $value The value to delete.
      * @return Action
      */
     public function delete(mixed $value): Action
@@ -203,6 +218,8 @@ final readonly class Path extends AbstractNode
     }
 
     /**
+     * Creates an action to remove the attribute.
+     * 
      * @return Action
      */
     public function remove(): Action
@@ -211,7 +228,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param Operation|Path|IfNotExists|mixed $value
+     * Creates an action to set the attribute to a specified value.
+     *
+     * @param Operation|Path|IfNotExists|mixed $value The value or operation to set.
      * @return  Action
      */
     public function set(mixed $value): Action
