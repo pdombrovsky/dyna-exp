@@ -1,5 +1,7 @@
 <?php
 
+namespace DynaExp\Tests\Evaluation\Aliases;
+
 use DynaExp\Evaluation\Aliases\Names;
 use PHPUnit\Framework\TestCase;
 

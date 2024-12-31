@@ -6,7 +6,6 @@ use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Exceptions\UnexpectedValueException;
 use DynaExp\Nodes\EvaluableInterface;
 
-
 final class ExpressionContext
 {
     /**
