@@ -3,21 +3,22 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Enums\ConditionTypeEnum;
+use DynaExp\Exceptions\RuntimeException;
 use DynaExp\Nodes\Condition;
 
 final class ConditionBuilder
 {
     /**
-     * @var Condition
+     * @var null|Condition
      */
-    private Condition $current;
+    private null|Condition $current;
 
     /**
-     * @param Condition|self $condition
+     * @param null|Condition|self $condition
      */
-    public function __construct(Condition|self $condition)
+    public function __construct(null|Condition|self $condition = null)
     {
-        $this->current = $condition instanceof Condition ? $condition : static::parenthesizeInnerCondition($condition->build());
+        $this->current = $condition instanceof self ? static::parenthesizeInnerCondition($condition->build()) : $condition;
     }
 
     /**
@@ -48,6 +49,23 @@ final class ConditionBuilder
      */
     private function glueConditions(ConditionTypeEnum $glue, Condition|self ...$conditions): void
     {
+        if (!$this->current) {
+
+            if (count($conditions) < 2) {
+
+                throw new RuntimeException('At least two conditions required if initial condition is not set.');
+            }
+
+            $condition = array_shift($conditions);
+
+            if ($condition instanceof ConditionBuilder) {
+
+                $condition = static::parenthesizeInnerCondition($condition->build());
+            }
+
+            $this->current = $condition;
+        }
+
         foreach ($conditions as $condition) {
 
             if ($condition instanceof ConditionBuilder) {
@@ -72,6 +90,6 @@ final class ConditionBuilder
      */
     public function build(): Condition
     {
-        return $this->current;
+        return $this->current ?? throw new RuntimeException('There are no conditions to build.');;
     }
 }

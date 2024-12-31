@@ -8,7 +8,7 @@ use DynaExp\Evaluation\EvaluatorInterface;
 final readonly class Action implements EvaluableInterface
 {
     /**
-     * @var array
+     * @var mixed[]
      */
     public array $nodes;
 

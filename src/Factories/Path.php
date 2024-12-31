@@ -81,105 +81,6 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param string $pathString
-     * @throws InvalidArgumentException
-     * @return Path
-     */
-    public static function fromString(string $pathString): Path
-    {
-        if ($pathString === '') {
-            throw new InvalidArgumentException("Input string cannot be empty.");
-        }
-
-        $segments = [];
-        $buffer = '';
-        $previousChar = '';
-        $shouldProcessBuffer = false;
-        $bracketLevel = 0;
-
-        $length = strlen($pathString);
-        $i = 0;
-
-        while ($i < $length) {
-
-            $char = $pathString[$i];
-
-            switch ($char) {
-                case '.':
-                    if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if ($buffer === '' && ']' !== $previousChar) {
-                        throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $shouldProcessBuffer = false;
-                    break;
-                case '[':
-                    if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Nested brackets are not allowed. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if (in_array($previousChar, ['', '.'])) {
-                        throw new InvalidArgumentException(sprintf("Index used without a preceding attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $bracketLevel++;
-                    $shouldProcessBuffer = false;
-                    break;
-                case ']':
-                    if ($bracketLevel === 0) {
-                        throw new InvalidArgumentException(sprintf("Unmatched closing bracket. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if ($buffer === '') {
-                        throw new InvalidArgumentException(sprintf("Empty index found. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if (! ctype_digit($buffer)) {
-                        throw new InvalidArgumentException(sprintf("Only non-negative integers are allowed in index, '$buffer' given. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $buffer = (int) $buffer;
-
-                    $bracketLevel--;
-                    $shouldProcessBuffer = false;
-                    break;
-                default:
-                    $buffer .= $char;
-                    $shouldProcessBuffer = true;
-            }
-
-            if (! $shouldProcessBuffer && $buffer !== '') {
-                $segments[] = $buffer;
-                $buffer = '';
-            }
-
-            $previousChar = $char;
-            $i++;
-        }
-
-        if ($bracketLevel !== 0) {
-            throw new InvalidArgumentException(sprintf("Unmatched opening bracket. %s", self::processedSymbolsMessage($pathString, $i)));
-        }
-
-        if ($buffer) {
-            $segments[] = $buffer;
-        }
-
-        $attribute = array_shift($segments);
-
-        return new Path($attribute, ...$segments);
-    }
-
-    /**
-     * @param string $pathString
-     * @param int $index
-     * @return string
-     */
-    private static function processedSymbolsMessage(string $pathString, int $index): string
-    {
-        return sprintf("Processed symbols: '%s'.", substr($pathString, 0, $index));
-    }
-
-    /**
      * @return \DynaExp\Nodes\Path
      */
     public function project(): PathNode
@@ -219,6 +120,17 @@ final readonly class Path extends AbstractNode
     }
 
     /**
+     * Creates a condition to ensure the attribute type is not the specified type.
+     *
+     * @param AttributeTypeEnum $type The expected attribute type.
+     * @return Condition
+     */
+    public function attributeTypeNot(AttributeTypeEnum $type): Condition
+    {
+        return new Condition(ConditionTypeEnum::notCond, $this->attributeType($type));
+    }
+
+    /**
      * Creates a condition to check if the attribute begins with a specified prefix.
      *
      * @param mixed $prefix The prefix to check.
@@ -230,7 +142,7 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * Creates a condition to check if the attribute begins with a specified prefix.
+     * Creates a condition to check if the attribute not begins with a specified prefix.
      *
      * @param mixed $prefix The prefix to check.
      * @return Condition
@@ -284,7 +196,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param mixed $value
+     * Creates an action to add a specified value to the attribute.
+     *
+     * @param mixed $value The value to add.
      * @return Action
      */
     public function add(mixed $value): Action
@@ -293,7 +207,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param mixed $value
+     * Creates an action to delete a specified value from the attribute.
+     *
+     * @param mixed $value The value to delete.
      * @return Action
      */
     public function delete(mixed $value): Action
@@ -302,6 +218,8 @@ final readonly class Path extends AbstractNode
     }
 
     /**
+     * Creates an action to remove the attribute.
+     * 
      * @return Action
      */
     public function remove(): Action
@@ -310,7 +228,9 @@ final readonly class Path extends AbstractNode
     }
 
     /**
-     * @param Operation|Path|IfNotExists|mixed $value
+     * Creates an action to set the attribute to a specified value.
+     *
+     * @param Operation|Path|IfNotExists|mixed $value The value or operation to set.
      * @return  Action
      */
     public function set(mixed $value): Action
