@@ -9,38 +9,45 @@ use DynaExp\Nodes\KeyCondition;
 final class KeyConditionBuilder
 {
     /**
-     * @var KeyCondition
+     * @var ?KeyCondition
      */
-    private KeyCondition $current;
+    private ?KeyCondition $rightKeyCondition;
 
     /**
-     * @param KeyCondition $partitionKeyCondition
+     * @param KeyCondition $leftKeyCondition
      * @throws InvalidArgumentException
      */
-    public function __construct(KeyCondition $partitionKeyCondition)
+    public function __construct(private KeyCondition $leftKeyCondition)
     {
-        if ($partitionKeyCondition->type !== KeyConditionTypeEnum::equalKeyCond) {
-
-            throw new InvalidArgumentException("Equal key condition is allowed for primary key only");
-
-        }
-
-        $this->current = $partitionKeyCondition;
-    }
-
-    /**
-     * @param KeyCondition $sortKeyCondition
-     * @return void
-     */
-    public function and(KeyCondition $sortKeyCondition): void
-    {
-        if ($sortKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
+        if ($leftKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
 
             throw new InvalidArgumentException("Condition 'AND' must not be used twice");
 
         }
 
-        $this->current = new KeyCondition(KeyConditionTypeEnum::andKeyCond, $this->current, $sortKeyCondition);
+        $this->rightKeyCondition = null;
+    }
+
+    /**
+     * Adds a right-hand side KeyCondition with an AND operator to the existing left-hand side KeyCondition.
+     * If a right-hand side KeyCondition has already been set, it will be overwritten.
+     * This method is intended for a single AND combination scenario.
+     *
+     * @param KeyCondition $rightKeyCondition The right-hand side condition to be combined with the left one.
+     * @return self
+     * @throws InvalidArgumentException if the provided KeyCondition has a type of `AND`.
+     */
+    public function and(KeyCondition $rightKeyCondition): self
+    {
+        if ($rightKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
+
+            throw new InvalidArgumentException("Condition 'AND' must not be used twice");
+
+        }
+
+        $this->rightKeyCondition = $rightKeyCondition;
+
+        return $this;
     }
 
     /**
@@ -48,6 +55,8 @@ final class KeyConditionBuilder
      */
     public function build(): KeyCondition
     {
-        return $this->current;
+        return $this->rightKeyCondition ?
+            new KeyCondition(KeyConditionTypeEnum::andKeyCond, $this->leftKeyCondition, $this->rightKeyCondition) :
+            $this->leftKeyCondition;
     }
 }
