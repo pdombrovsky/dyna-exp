@@ -44,21 +44,7 @@ class Evaluator implements EvaluatorInterface
      */
     public function evaluatePath(Path $path): string
     {
-        $parts = [];
-        $lastIndex = -1;
-        foreach ($path->segments as $segment) {
-
-            if (is_int($segment)) {
-
-                $parts[$lastIndex] .= "[$segment]";
-
-            } else {
-
-                $parts[++$lastIndex] = $this->aliasNames->alias($segment);
-            }
-        }
-        
-        return implode('.', $parts);
+        return $path->convertToString(fn(string $segment) => $this->aliasNames->alias($segment));
     }
 
     /**
