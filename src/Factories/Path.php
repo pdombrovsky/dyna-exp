@@ -15,8 +15,9 @@ use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Path as PathNode;
+use Stringable;
 
-final readonly class Path extends AbstractNode
+final readonly class Path extends AbstractNode implements Stringable
 {
     use ConditionTrait;
     use OperationTrait;
@@ -241,5 +242,23 @@ final readonly class Path extends AbstractNode
         }
 
         return new Action(ActionTypeEnum::set, $this->pathNode, $value);
+    }
+
+    /**
+     * Returns JMESPath search expression
+     * 
+     * @return string
+     */
+    public function searchExpression(): string
+    {
+        return $this->pathNode->convertToString(fn (string $segment) => "\"$segment\"");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __tostring(): string
+    {
+        return $this->pathNode->__tostring();
     }
 }
