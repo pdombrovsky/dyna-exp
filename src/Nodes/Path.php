@@ -29,6 +29,15 @@ final readonly class Path implements Stringable, EvaluableInterface
      */
     public function __tostring(): string
     {
+        return $this->convertToString(fn (string $segment) => $segment);
+    }
+
+    /**
+     * @param callable(string $segment): string $stringSegmentTransformer
+     * @return string
+     */
+    public function convertToString(callable $stringSegmentTransformer): string
+    {
         $parts = [];
         $lastIndex = -1;
         foreach ($this->segments as $segment) {
@@ -39,7 +48,7 @@ final readonly class Path implements Stringable, EvaluableInterface
 
             } else {
 
-                $parts[++$lastIndex] = $segment;
+                $parts[++$lastIndex] = $stringSegmentTransformer($segment);
             }
         }
         
