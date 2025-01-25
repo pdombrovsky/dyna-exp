@@ -54,4 +54,14 @@ final readonly class Path implements Stringable, EvaluableInterface
         
         return implode('.', $parts);
     }
+
+    /**
+     * Returns parent path node segments if exists
+     * 
+     * @return array<string|int>
+     */
+    public function parentPathSegments(): array
+    {
+        return array_slice($this->segments, 0, -1);
+    }
 }

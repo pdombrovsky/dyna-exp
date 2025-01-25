@@ -43,7 +43,7 @@ final class PathTest extends TestCase
     public static function invalidPathsProvider(): array
     {
         return [
-            ['', [], 'Attribute can not be empty string.'],
+            ['', [], 'First segment must be not empty string.'],
             ['attribute', ['nested', -1], "Wrong path segment found after: 'attribute.nested'. Index can not be negative, '-1' given."],
             ['attribute', ['nested', 1, ''], "Wrong path segment found after: 'attribute.nested[1]'. Path segment can not be empty string."],
         ];
