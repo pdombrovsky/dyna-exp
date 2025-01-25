@@ -25,31 +25,36 @@ final readonly class Path extends AbstractNode implements Stringable
     private PathNode $pathNode;
 
     /**
-     * @param string $attribute
      * @param string|int ...$segments
      * @throws InvalidArgumentException
      */
-    public function __construct(string $attribute, string|int ...$segments)
+    public function __construct(string|int ...$segments)
     {
-        $validationMessage = static::validatePath($attribute, ...$segments);
+        $validationMessage = static::validatePath(...$segments);
 
         if ($validationMessage) {
 
             throw new InvalidArgumentException($validationMessage);
         }
 
-        $this->pathNode = new PathNode([$attribute, ...$segments]);
+        $this->pathNode = new PathNode($segments);
     }
 
     /**
-     * @param string $attribute
      * @param string|int ...$segments
      * @return string
      */
-    private static function validatePath(string $attribute, string|int ...$segments): string
+    private static function validatePath(string|int ...$segments): string
     {
-        if ($attribute === '') {
-            return "Attribute can not be empty string.";
+        if (empty($segments)) {
+            return "Segments must not be empty.";
+        }
+
+        $attribute = array_shift($segments);
+
+        if (!is_string($attribute) || $attribute === '') {
+
+            return "First segment must be not empty string.";
         }
 
         $checkedSegments = [];
@@ -242,6 +247,18 @@ final readonly class Path extends AbstractNode implements Stringable
         }
 
         return new Action(ActionTypeEnum::set, $this->pathNode, $value);
+    }
+
+    /**
+     * Returns parent path factory if exists
+     * 
+     * @return Path|null
+     */
+    public function parent(): ?self
+    {
+       $segments = $this->pathNode->parentPathSegments();
+
+       return $segments ? new self(...$segments) : null;
     }
 
     /**
