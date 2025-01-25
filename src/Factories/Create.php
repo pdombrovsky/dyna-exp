@@ -115,9 +115,7 @@ final class Create
             $segments[] = $buffer;
         }
 
-        $attribute = array_shift($segments);
-
-        return new Path($attribute, ...$segments);
+        return new Path(...$segments);
     }
 
     /**
