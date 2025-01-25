@@ -262,6 +262,17 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
+     * Returns child path factory for given segments
+     * 
+     * @param string|int ...$segments
+     * @throws InvalidArgumentException
+     */
+    public function child(string|int ...$segments): self
+    {
+       return new self(...$this->pathNode->segments, ...$segments);
+    }
+
+    /**
      * Returns JMESPath search expression
      * 
      * @return string
