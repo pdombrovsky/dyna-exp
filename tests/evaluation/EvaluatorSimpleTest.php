@@ -49,7 +49,7 @@ final class EvaluatorSimpleTest extends TestCase
     {
         $path = new Path(['attribute', 'nested1', 2, 'nested2']);
 
-        $size = new Size($path);
+        $size = new Size([$path]);
 
         $evaluator = new Evaluator();
 

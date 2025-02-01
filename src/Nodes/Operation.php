@@ -4,9 +4,13 @@ namespace DynaExp\Nodes;
 
 use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Evaluation\EvaluatorInterface;
+use DynaExp\Nodes\Traits\NodesToStringTrait;
+use Stringable;
 
-final readonly class Operation implements EvaluableInterface
+final readonly class Operation implements EvaluableInterface, Stringable
 {
+    use NodesToStringTrait;
+
     /**
      * @var array<EvaluableInterface|mixed>
      */
@@ -28,5 +32,25 @@ final readonly class Operation implements EvaluableInterface
     public function evaluate(EvaluatorInterface $evaluator): string
     {
         return $evaluator->evaluateOperation($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function convertToString(array $nodes): string
+    {
+        if (OperationTypeEnum::listPrepend == $this->type) {
+
+            $nodes = array_reverse($nodes);
+
+            $fmtString = OperationTypeEnum::listAppend->value;
+
+        }
+        else {
+            
+            $fmtString = $this->type->value;
+        }
+
+        return sprintf($fmtString, ...$nodes);
     }
 }

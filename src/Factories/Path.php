@@ -228,15 +228,20 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function searchExpression(): string
     {
-        return $this->pathNode->convertToString(fn(string $segment) => "\"$segment\"");
+        $segments = array_map(
+            fn(string|int $segment) => is_int($segment) ? $segment : "\"$segment\"",
+            $this->pathNode->segments
+        );
+
+        return $this->pathNode->convertToString($segments);
     }
 
     /**
      * @inheritDoc
      */
-    public function __tostring(): string
+    public function __toString(): string
     {
-        return $this->pathNode->__tostring();
+        return $this->pathNode->__toString();
     }
 
     /**

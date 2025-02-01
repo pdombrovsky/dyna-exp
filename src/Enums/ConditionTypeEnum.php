@@ -2,23 +2,23 @@
 
 namespace DynaExp\Enums;
 
-enum ConditionTypeEnum
+enum ConditionTypeEnum: string
 {
-	case equalCond;
-	case notEqualCond;
-	case lessThanCond;
-	case lessThanEqualCond;
-	case greaterThanCond;
-	case greaterThanEqualCond;
-	case betweenCond;
-	case inCond;
-	case attrExistsCond;
-	case attrNotExistsCond;
-	case attrTypeCond;
-	case beginsWithCond;
-	case containsCond;
-	case andCond;
-	case orCond;
-	case notCond;
-	case parenthesesCond;
+	case equalCond = '%s = %s';
+	case notEqualCond = '%s <> %s';
+	case lessThanCond = '%s < %s';
+	case lessThanEqualCond = '%s <= %s';
+	case greaterThanCond = '%s > %s';
+	case greaterThanEqualCond = '%s >= %s';
+	case attrTypeCond = 'attribute_type (%s, %s)';
+	case beginsWithCond = 'begins_with (%s, %s)';
+	case containsCond = 'contains (%s, %s)';
+	case betweenCond = '%s BETWEEN %s AND %s';
+	case attrExistsCond = 'attribute_exists (%s)';
+	case attrNotExistsCond = 'attribute_not_exists (%s)';
+	case inCond = '%s IN (%s)';
+	case notCond = 'NOT %s';
+	case andCond = '%s AND %s';
+	case orCond = '%s OR %s';
+	case parenthesesCond = '(%s)';
 }
