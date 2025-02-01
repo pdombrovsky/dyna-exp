@@ -33,7 +33,7 @@ final class PathTest extends TestCase
     #[DataProvider('validPathsProvider')]
     public function testValidPaths(string $attribue, array $segments, string $expectedOutput)
     {
-        $path = new Path($attribue, ...$segments);
+        $path = Path::create($attribue, ...$segments);
         $this->assertSame($expectedOutput, $path->project()->__toString());
     }
 
@@ -60,6 +60,6 @@ final class PathTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
-        new Path($attribue, ...$segments);
+        Path::create($attribue, ...$segments);
     }
 }

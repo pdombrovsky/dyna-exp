@@ -21,4 +21,12 @@ final readonly class Update implements EvaluableInterface
     {
         return $evaluator->evaluateUpdate($this);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function convertToString(array $nodes): string
+    {
+        return implode(' ', $nodes);
+    }
 }

@@ -11,4 +11,10 @@ interface EvaluableInterface
      * @return string
      */
     function evaluate(EvaluatorInterface $evaluator): string;
+
+    /**
+     * @param array<EvaluableInterface|mixed> $nodes
+     * @return string
+     */
+    function convertToString(array $nodes): string;
 }

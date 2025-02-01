@@ -18,8 +18,8 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function operationProvider(): array
     {
-        $somePath = new Path('someAttribute', 1, 'nestedAttribute');
-        $anotherPath = new Path('anotherAttribute');
+        $somePath = Path::create('someAttribute', 1, 'nestedAttribute');
+        $anotherPath = Path::create('anotherAttribute');
         return [
             [
                 $somePath
@@ -100,8 +100,8 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function actionProvider(): array
     {
-        $somePath = new Path('someAttribute', 1, 'nestedAttribute');
-        $anotherPath = new Path('anotherAttribute');
+        $somePath = Path::create('someAttribute', 1, 'nestedAttribute');
+        $anotherPath = Path::create('anotherAttribute');
         return [
             [
                 $somePath->set($anotherPath->ifNotExists(2)->plus(3)),
@@ -181,9 +181,9 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function projectionProvider(): array
     {
-        $somePath = new Path('someAttribute', 'nestedAttribute');
-        $anotherPath = new Path('anotherAttribute');
-        $anotherOnePath = new Path('anotherOneAttribute', 'nestedAttribute', 2);
+        $somePath = Path::create('someAttribute', 'nestedAttribute');
+        $anotherPath = Path::create('anotherAttribute');
+        $anotherOnePath = Path::create('anotherOneAttribute', 'nestedAttribute', 2);
         return [
             [
                 new Projection([$somePath->project()]),

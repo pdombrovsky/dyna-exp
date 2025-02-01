@@ -4,9 +4,14 @@ namespace DynaExp\Nodes;
 
 use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Evaluation\EvaluatorInterface;
+use DynaExp\Exceptions\RuntimeException;
+use DynaExp\Nodes\Traits\NodesToStringTrait;
+use Stringable;
 
-final readonly class Action implements EvaluableInterface
+final readonly class Action implements EvaluableInterface, Stringable
 {
+    use NodesToStringTrait;
+
     /**
      * @var mixed[]
      */
@@ -28,5 +33,22 @@ final readonly class Action implements EvaluableInterface
     public function evaluate(EvaluatorInterface $evaluator): string
     {
         return $evaluator->evaluateAction($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function convertToString(array $nodes): string
+    {
+        $fmtString = match ($this->type) {
+            ActionTypeEnum::set => '%s = %s',
+            ActionTypeEnum::add,
+            ActionTypeEnum::delete => '%s %s',
+            ActionTypeEnum::remove => '%s',
+
+            default => throw new RuntimeException("Action is unknown"),
+        };
+
+        return sprintf($fmtString, ...$nodes);
     }
 }

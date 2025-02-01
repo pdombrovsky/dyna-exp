@@ -2,10 +2,10 @@
 
 namespace DynaExp\Enums;
 
-enum ActionTypeEnum
+enum ActionTypeEnum: string
 {
-    case set;
-    case add;
-    case delete;
-    case remove;
+    case set = 'SET';
+    case add = 'ADD';
+    case delete = 'DELETE';
+    case remove = 'REMOVE';
 }
