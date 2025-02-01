@@ -25,65 +25,12 @@ final readonly class Path extends AbstractNode implements Stringable
     private PathNode $pathNode;
 
     /**
-     * @param string|int ...$segments
+     * @param array<string|int> $segments
      * @throws InvalidArgumentException
      */
-    public function __construct(string|int ...$segments)
+    private function __construct(array $segments)
     {
-        $validationMessage = static::validatePath(...$segments);
-
-        if ($validationMessage) {
-
-            throw new InvalidArgumentException($validationMessage);
-        }
-
         $this->pathNode = new PathNode($segments);
-    }
-
-    /**
-     * @param string|int ...$segments
-     * @return string
-     */
-    private static function validatePath(string|int ...$segments): string
-    {
-        if (empty($segments)) {
-            return "Segments must not be empty.";
-        }
-
-        $attribute = array_shift($segments);
-
-        if (!is_string($attribute) || $attribute === '') {
-
-            return "First segment must be not empty string.";
-        }
-
-        $checkedSegments = [];
-        $errorMessage = '';
-        foreach ($segments as $segment) {
-
-            if (is_int($segment) && $segment < 0) {
-
-                $errorMessage = "Index can not be negative, '$segment' given.";
-                break;
-            }
-
-            if ($segment === '') {
-
-                $errorMessage = 'Path segment can not be empty string.';
-                break;
-            }
-
-            $checkedSegments[] = $segment;
-        }
-
-        if ($errorMessage) {
-
-            $checked = (new PathNode([$attribute, ...$checkedSegments]))->__tostring();
-
-            return "Wrong path segment found after: '$checked'. $errorMessage";
-        }
-
-        return '';
     }
 
     /**
@@ -256,9 +203,9 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function parent(): ?self
     {
-       $segments = $this->pathNode->parentPathSegments();
+        $segments = $this->pathNode->parentPathSegments();
 
-       return $segments ? new self(...$segments) : null;
+        return $segments ? new self($segments) : null;
     }
 
     /**
@@ -269,7 +216,9 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function child(string|int ...$segments): self
     {
-       return new self(...$this->pathNode->segments, ...$segments);
+        self::validateSegments(...$segments);
+
+        return new self([...$this->pathNode->segments, ...$segments]);
     }
 
     /**
@@ -279,7 +228,7 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function searchExpression(): string
     {
-        return $this->pathNode->convertToString(fn (string $segment) => "\"$segment\"");
+        return $this->pathNode->convertToString(fn(string $segment) => "\"$segment\"");
     }
 
     /**
@@ -288,5 +237,180 @@ final readonly class Path extends AbstractNode implements Stringable
     public function __tostring(): string
     {
         return $this->pathNode->__tostring();
+    }
+
+    /**
+     * @param string|int ...$segments
+     * @throws \DynaExp\Exceptions\InvalidArgumentException
+     * @return Path
+     */
+    public static function create(string|int ...$segments): self
+    {
+        self::validateSegments(...$segments);
+
+        return new Path($segments);
+    }
+
+    /**
+     * @param string|int ...$segments
+     * @throws \DynaExp\Exceptions\InvalidArgumentException
+     * @return void
+     */
+    private static function validateSegments(string|int ...$segments): void
+    {
+        $validationMessage = self::getValidationMessage(...$segments);
+
+        if ($validationMessage) {
+
+            throw new InvalidArgumentException($validationMessage);
+        }
+    }
+
+    /**
+     * @param string|int ...$segments
+     * @return string
+     */
+    private static function getValidationMessage(string|int ...$segments): string
+    {
+        if (empty($segments)) {
+            return "Segments must not be empty.";
+        }
+
+        $attribute = array_shift($segments);
+
+        if (! is_string($attribute) || $attribute === '') {
+
+            return "First segment must be not empty string.";
+        }
+
+        $checkedSegments = [];
+        $errorMessage = '';
+        foreach ($segments as $segment) {
+
+            if (is_int($segment) && $segment < 0) {
+
+                $errorMessage = "Index can not be negative, '$segment' given.";
+                break;
+            }
+
+            if ($segment === '') {
+
+                $errorMessage = 'Path segment can not be empty string.';
+                break;
+            }
+
+            $checkedSegments[] = $segment;
+        }
+
+        if ($errorMessage) {
+
+            $checked = (new PathNode([$attribute, ...$checkedSegments]))->__tostring();
+
+            return "Wrong path segment found after: '$checked'. $errorMessage";
+        }
+
+        return '';
+    }
+
+    /**
+     * Creates path from string.
+     * Any dot will be treated as segments splitter.
+     * Any square bracket will be treated as index description.
+     * 
+     * @param string $pathString
+     * @throws InvalidArgumentException
+     * @throws \DynaExp\Exceptions\RuntimeException
+     * @return \DynaExp\Factories\Path
+     */
+    public static function fromString(string $pathString): Path
+    {
+        if ($pathString === '') {
+            throw new InvalidArgumentException("Input string cannot be empty.");
+        }
+
+        $segments = [];
+        $buffer = '';
+        $previousChar = '';
+        $shouldProcessBuffer = false;
+        $bracketLevel = 0;
+
+        $length = strlen($pathString);
+        $i = 0;
+
+        while ($i < $length) {
+
+            $char = $pathString[$i];
+
+            switch ($char) {
+                case '.':
+                    if ($bracketLevel > 0) {
+                        throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if ($buffer === '' && ']' !== $previousChar) {
+                        throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+
+                    $shouldProcessBuffer = false;
+                    break;
+                case '[':
+                    if ($bracketLevel > 0) {
+                        throw new InvalidArgumentException(sprintf("Nested brackets are not allowed. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if (in_array($previousChar, ['', '.'])) {
+                        throw new InvalidArgumentException(sprintf("Index used without a preceding attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+
+                    $bracketLevel++;
+                    $shouldProcessBuffer = false;
+                    break;
+                case ']':
+                    if ($bracketLevel === 0) {
+                        throw new InvalidArgumentException(sprintf("Unmatched closing bracket. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if ($buffer === '') {
+                        throw new InvalidArgumentException(sprintf("Empty index found. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if (! ctype_digit($buffer)) {
+                        throw new InvalidArgumentException(sprintf("Only non-negative integers are allowed in index, '$buffer' given. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+
+                    $buffer = (int) $buffer;
+
+                    $bracketLevel--;
+                    $shouldProcessBuffer = false;
+                    break;
+                default:
+                    $buffer .= $char;
+                    $shouldProcessBuffer = true;
+            }
+
+            if (! $shouldProcessBuffer && $buffer !== '') {
+                $segments[] = $buffer;
+                $buffer = '';
+            }
+
+            $previousChar = $char;
+            $i++;
+        }
+
+        if ($bracketLevel !== 0) {
+            throw new InvalidArgumentException(sprintf("Unmatched opening bracket. %s", self::processedSymbolsMessage($pathString, $i)));
+        }
+
+        if ($buffer) {
+            $segments[] = $buffer;
+        }
+
+        return new Path($segments);
+    }
+
+    /**
+     * @param string $pathString
+     * @param int $index
+     * @return string
+     */
+    private static function processedSymbolsMessage(string $pathString, int $index): string
+    {
+        return sprintf("Processed symbols: '%s'.", substr($pathString, 0, $index));
     }
 }
