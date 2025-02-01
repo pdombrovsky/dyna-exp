@@ -89,4 +89,13 @@ final class Key
     {
         return new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $this->pathNode, $lower, $upper);
     }
+
+    /**
+     * @param string $attribute
+     * @return \DynaExp\Factories\Key
+     */
+    public static function create(string $attribute): self
+    {
+        return new self($attribute);
+    }
 }

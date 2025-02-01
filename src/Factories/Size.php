@@ -17,6 +17,6 @@ final class Size
      */
     public function __construct(Path $path)
     {
-        $this->pathNode = new SizeNode($path);
+        $this->pathNode = new SizeNode([$path]);
     }
 }

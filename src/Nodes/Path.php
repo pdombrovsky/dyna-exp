@@ -27,20 +27,19 @@ final readonly class Path implements Stringable, EvaluableInterface
     /**
      * @inheritDoc
      */
-    public function __tostring(): string
+    public function __toString(): string
     {
-        return $this->convertToString(fn (string $segment) => $segment);
+        return $this->convertToString($this->segments);
     }
 
     /**
-     * @param callable(string $segment): string $stringSegmentTransformer
-     * @return string
+     * @inheritDoc
      */
-    public function convertToString(callable $stringSegmentTransformer): string
+    public function convertToString(array $nodes): string
     {
         $parts = [];
         $lastIndex = -1;
-        foreach ($this->segments as $segment) {
+        foreach ($nodes as $segment) {
 
             if (is_int($segment)) {
 
@@ -48,7 +47,7 @@ final readonly class Path implements Stringable, EvaluableInterface
 
             } else {
 
-                $parts[++$lastIndex] = $stringSegmentTransformer($segment);
+                $parts[++$lastIndex] = $segment;
             }
         }
         
