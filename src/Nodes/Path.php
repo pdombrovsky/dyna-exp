@@ -35,11 +35,11 @@ final readonly class Path implements Stringable, EvaluableInterface
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
         $parts = [];
         $lastIndex = -1;
-        foreach ($nodes as $segment) {
+        foreach ($convertedNodes as $segment) {
 
             if (is_int($segment)) {
 
@@ -62,5 +62,15 @@ final readonly class Path implements Stringable, EvaluableInterface
     public function parentPathSegments(): array
     {
         return array_slice($this->segments, 0, -1);
+    }
+
+    /**
+     * Returns last segment for given path
+     * 
+     * @return int|string
+     */
+    public function lastSegment(): int|string
+    {
+        return $this->segments[array_key_last($this->segments)];
     }
 }
