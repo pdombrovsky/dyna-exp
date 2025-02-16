@@ -12,7 +12,7 @@ final readonly class KeyCondition implements EvaluableInterface, Stringable
     use NodesToStringTrait;
 
     /**
-     * @var array<EvaluableInterface|string>
+     * @var array<EvaluableInterface|mixed>
      */
     public array $nodes;
 
@@ -37,8 +37,8 @@ final readonly class KeyCondition implements EvaluableInterface, Stringable
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
-        return sprintf($this->type->value, ...$nodes);
+        return sprintf($this->type->value, ...$convertedNodes);
     }
 }

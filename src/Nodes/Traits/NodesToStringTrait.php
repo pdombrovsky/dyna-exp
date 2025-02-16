@@ -26,6 +26,7 @@ trait NodesToStringTrait
         return match (true) {
             $value instanceof Stringable => $value->__toString(),
             is_object($value) && method_exists($value, 'toArray') => print_r($value->toArray(), true),
+            null === $value => 'null',
 
             default => print_r($value, true)
         };

@@ -25,8 +25,8 @@ final readonly class Projection implements EvaluableInterface
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
-        return implode(', ', $nodes);
+        return implode(', ', $convertedNodes);
     }
 }

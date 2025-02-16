@@ -29,8 +29,8 @@ final readonly class ActionsSequence implements EvaluableInterface
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
-        return $this->actionType->value . ' ' . implode(', ', $nodes);
+        return $this->actionType->value . ' ' . implode(', ', $convertedNodes);
     }
 }

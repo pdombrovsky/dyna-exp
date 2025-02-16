@@ -38,7 +38,7 @@ final readonly class Action implements EvaluableInterface, Stringable
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
         $fmtString = match ($this->type) {
             ActionTypeEnum::set => '%s = %s',
@@ -49,6 +49,6 @@ final readonly class Action implements EvaluableInterface, Stringable
             default => throw new RuntimeException("Action is unknown"),
         };
 
-        return sprintf($fmtString, ...$nodes);
+        return sprintf($fmtString, ...$convertedNodes);
     }
 }

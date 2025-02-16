@@ -32,8 +32,8 @@ final readonly class Size implements EvaluableInterface, Stringable
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
-        return sprintf(self::FMT_STRING, ...$nodes);
+        return sprintf(self::FMT_STRING, ...$convertedNodes);
     }
 }

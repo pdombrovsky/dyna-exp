@@ -37,11 +37,11 @@ final readonly class Operation implements EvaluableInterface, Stringable
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
         if (OperationTypeEnum::listPrepend == $this->type) {
 
-            $nodes = array_reverse($nodes);
+            $convertedNodes = array_reverse($convertedNodes);
 
             $fmtString = OperationTypeEnum::listAppend->value;
 
@@ -51,6 +51,6 @@ final readonly class Operation implements EvaluableInterface, Stringable
             $fmtString = $this->type->value;
         }
 
-        return sprintf($fmtString, ...$nodes);
+        return sprintf($fmtString, ...$convertedNodes);
     }
 }
