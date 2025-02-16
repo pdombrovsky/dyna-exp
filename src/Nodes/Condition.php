@@ -37,17 +37,17 @@ final readonly class Condition implements EvaluableInterface, Stringable
     /**
      * @inheritDoc
      */
-    public function convertToString(array $nodes): string
+    public function convertToString(array $convertedNodes): string
     {
         if ($this->type === ConditionTypeEnum::inCond) {
 
-            $fmtString = str_replace('(%s)', '(' . str_repeat('%s, ', count($nodes) - 2) . '%s)', $this->type->value);
+            $fmtString = str_replace('(%s)', '(' . str_repeat('%s, ', count($convertedNodes) - 2) . '%s)', $this->type->value);
         }
         else {
 
             $fmtString = $this->type->value;
         }
  
-        return sprintf($fmtString, ...$nodes);
+        return sprintf($fmtString, ...$convertedNodes);
     }
 }

@@ -222,6 +222,16 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
+     * Returns last segment for given path node
+     * 
+     * @return int|string
+     */
+    public function lastSegment(): int|string
+    {
+        return $this->pathNode->lastSegment();
+    }
+
+    /**
      * Returns JMESPath search expression
      * 
      * @return string
