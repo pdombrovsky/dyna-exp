@@ -233,13 +233,13 @@ final readonly class Path extends AbstractNode implements Stringable
 
     /**
      * Returns JMESPath search expression
-     * 
+     * @param bool $resetIndexes
      * @return string
      */
-    public function searchExpression(): string
+    public function searchExpression(bool $resetIndexes = false): string
     {
         $segments = array_map(
-            fn(string|int $segment) => is_int($segment) ? $segment : "\"$segment\"",
+            fn(string|int $segment) => is_int($segment) ? ($resetIndexes ? 0 : $segment): "\"$segment\"",
             $this->pathNode->segments
         );
 
