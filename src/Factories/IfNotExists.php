@@ -6,7 +6,7 @@ use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Factories\Abstracts\AbstractNode;
 use DynaExp\Factories\Traits\OperationTrait;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\Path;
+use DynaExp\Nodes\PathNode;
 
 final readonly class IfNotExists extends AbstractNode
 {
@@ -15,10 +15,10 @@ final readonly class IfNotExists extends AbstractNode
     private Operation $pathNode;
 
     /**
-     * @param Path $path
+     * @param PathNode $path
      * @param mixed $value
      */
-    public function __construct(Path $path, mixed $value)
+    public function __construct(PathNode $path, mixed $value)
     {
         $this->pathNode = new Operation(OperationTypeEnum::ifNotExists, $path, $value);
     }

@@ -4,26 +4,16 @@ namespace DynaExp\Factories;
 
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
-use DynaExp\Nodes\Path;
+use DynaExp\Nodes\PathNode;
 use InvalidArgumentException;
 
 final class Key
 {
     /**
-     * @var Path
+     * @param PathNode $pathNode
      */
-    private Path $pathNode;
-
-    /**
-     * @param string $key
-     */
-    public function __construct(string $key)
+    private function __construct(private PathNode $pathNode)
     {
-        if ($key === '') {
-            throw new InvalidArgumentException("Key attribute name cannot be empty");
-        }
-
-        $this->pathNode = new Path([$key]);
     }
 
     /**
@@ -96,6 +86,10 @@ final class Key
      */
     public static function create(string $attribute): self
     {
-        return new self($attribute);
+        if ($attribute === '') {
+            throw new InvalidArgumentException("Key attribute name cannot be empty");
+        }
+
+        return new self(new PathNode([$attribute]));
     }
 }

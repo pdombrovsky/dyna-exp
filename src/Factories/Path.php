@@ -14,7 +14,7 @@ use DynaExp\Factories\Traits\OperationTrait;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\Path as PathNode;
+use DynaExp\Nodes\PathNode;
 use Stringable;
 
 final readonly class Path extends AbstractNode implements Stringable
@@ -22,19 +22,15 @@ final readonly class Path extends AbstractNode implements Stringable
     use ConditionTrait;
     use OperationTrait;
 
-    private PathNode $pathNode;
-
     /**
-     * @param array<string|int> $segments
-     * @throws InvalidArgumentException
+     * @param PathNode $pathNode
      */
-    private function __construct(array $segments)
+    private function __construct(private PathNode $pathNode)
     {
-        $this->pathNode = new PathNode($segments);
     }
 
     /**
-     * @return \DynaExp\Nodes\Path
+     * @return \DynaExp\Nodes\PathNode
      */
     public function project(): PathNode
     {
@@ -197,15 +193,15 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
-     * Returns parent path factory if exists
+     * Returns parent path factory if parent path exists
      * 
      * @return Path|null
      */
     public function parent(): ?self
     {
-        $segments = $this->pathNode->parentPathSegments();
+        $parentNode = $this->pathNode->parent();
 
-        return $segments ? new self($segments) : null;
+        return $parentNode ? new self($parentNode) : null;
     }
 
     /**
@@ -216,9 +212,9 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function child(string|int ...$segments): self
     {
-        self::validateSegments(...$segments);
+        self::validateSegments($segments);
 
-        return new self([...$this->pathNode->segments, ...$segments]);
+        return new self($this->pathNode->child($segments));
     }
 
     /**
@@ -238,12 +234,7 @@ final readonly class Path extends AbstractNode implements Stringable
      */
     public function searchExpression(bool $resetIndexes = false): string
     {
-        $segments = array_map(
-            fn(string|int $segment) => is_int($segment) ? ($resetIndexes ? 0 : $segment): "\"$segment\"",
-            $this->pathNode->segments
-        );
-
-        return $this->pathNode->convertToString($segments);
+        return $this->pathNode->searchExpression($resetIndexes);
     }
 
     /**
@@ -255,25 +246,30 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
+     * @param string $attribute
      * @param string|int ...$segments
      * @throws \DynaExp\Exceptions\InvalidArgumentException
      * @return Path
      */
-    public static function create(string|int ...$segments): self
+    public static function create(string $attribute, string|int ...$segments): self
     {
-        self::validateSegments(...$segments);
+        if ($attribute === '') {
+            return throw new InvalidArgumentException("Attribute can not be empty string.");
+        }
 
-        return new Path($segments);
+        self::validateSegments($segments);
+
+        return new Path(new PathNode([$attribute, ...$segments]));
     }
 
     /**
-     * @param string|int ...$segments
+     * @param array<string|int> $segments
      * @throws \DynaExp\Exceptions\InvalidArgumentException
      * @return void
      */
-    private static function validateSegments(string|int ...$segments): void
+    private static function validateSegments(array $segments): void
     {
-        $validationMessage = self::getValidationMessage(...$segments);
+        $validationMessage = self::getSegmentsValidationMessage($segments);
 
         if ($validationMessage) {
 
@@ -282,22 +278,11 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
-     * @param string|int ...$segments
+     * @param array $segments
      * @return string
      */
-    private static function getValidationMessage(string|int ...$segments): string
+    private static function getSegmentsValidationMessage(array $segments): string
     {
-        if (empty($segments)) {
-            return "Segments must not be empty.";
-        }
-
-        $attribute = array_shift($segments);
-
-        if (! is_string($attribute) || $attribute === '') {
-
-            return "First segment must be not empty string.";
-        }
-
         $checkedSegments = [];
         $errorMessage = '';
         foreach ($segments as $segment) {
@@ -319,7 +304,7 @@ final readonly class Path extends AbstractNode implements Stringable
 
         if ($errorMessage) {
 
-            $checked = (new PathNode([$attribute, ...$checkedSegments]))->__tostring();
+            $checked = (new PathNode($checkedSegments))->__tostring();
 
             return "Wrong path segment found after: '$checked'. $errorMessage";
         }
@@ -416,7 +401,7 @@ final readonly class Path extends AbstractNode implements Stringable
             $segments[] = $buffer;
         }
 
-        return new Path($segments);
+        return new Path(new PathNode($segments));
     }
 
     /**

@@ -6,7 +6,7 @@ use DynaExp\Evaluation\EvaluatorInterface;
 use DynaExp\Nodes\EvaluableInterface;
 use Stringable;
 
-final readonly class Path implements Stringable, EvaluableInterface
+final readonly class PathNode implements Stringable, EvaluableInterface
 {
     /**
      * @param array<string|int> $segments
@@ -33,6 +33,22 @@ final readonly class Path implements Stringable, EvaluableInterface
     }
 
     /**
+     * Returns JMESPath search expression
+     * 
+     * @param bool $resetIndexes
+     * @return string
+     */
+    public function searchExpression(bool $resetIndexes = false): string
+    {
+        $segments = array_map(
+            fn(string|int $segment) => is_int($segment) ? ($resetIndexes ? 0 : $segment): "\"$segment\"",
+            $this->segments
+        );
+
+        return $this->convertToString($segments);
+    }
+
+    /**
      * @inheritDoc
      */
     public function convertToString(array $convertedNodes): string
@@ -55,13 +71,26 @@ final readonly class Path implements Stringable, EvaluableInterface
     }
 
     /**
-     * Returns parent path node segments if exists
+     * Returns parent path node if exists
      * 
-     * @return array<string|int>
+     * @return PathNode
      */
-    public function parentPathSegments(): array
+    public function parent(): ?self
     {
-        return array_slice($this->segments, 0, -1);
+        $parentSegments = array_slice($this->segments, 0, -1);
+
+        return $parentSegments ? new self($parentSegments) : null;
+    }
+
+    /**
+     * Returns child path node for given segments
+     * 
+     * @param array<string|int> $segments
+     * @return PathNode
+     */
+    public function child(array $segments): self
+    {
+        return new self([...$this->segments, ...$segments]);
     }
 
     /**
