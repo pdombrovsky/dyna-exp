@@ -10,7 +10,7 @@ use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\Path;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Size;
 use DynaExp\Nodes\Update;
@@ -34,10 +34,10 @@ class Evaluator implements EvaluatorInterface
     }
 
     /**
-     * @param Path $path
+     * @param PathNode $path
      * @return string
      */
-    public function evaluatePath(Path $path): string
+    public function evaluatePath(PathNode $path): string
     {
         $segments = array_map(
             fn(string|int $segment): string|int => is_int($segment) ? $segment : $this->aliasNames->alias($segment),

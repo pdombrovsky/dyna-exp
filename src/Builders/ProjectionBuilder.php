@@ -3,7 +3,7 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Factories\Path;
-use DynaExp\Nodes\Path as PathNode;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Projection;
 
 final class ProjectionBuilder

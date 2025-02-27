@@ -34,7 +34,7 @@ final class PathTest extends TestCase
     public function testValidPaths(string $attribue, array $segments, string $expectedOutput)
     {
         $path = Path::create($attribue, ...$segments);
-        $this->assertSame($expectedOutput, $path->project()->__toString());
+        $this->assertSame($expectedOutput, $path->__toString());
     }
 
     /**
@@ -43,9 +43,9 @@ final class PathTest extends TestCase
     public static function invalidPathsProvider(): array
     {
         return [
-            ['', [], 'First segment must be not empty string.'],
-            ['attribute', ['nested', -1], "Wrong path segment found after: 'attribute.nested'. Index can not be negative, '-1' given."],
-            ['attribute', ['nested', 1, ''], "Wrong path segment found after: 'attribute.nested[1]'. Path segment can not be empty string."],
+            ['', [], 'Attribute can not be empty string.'],
+            ['attribute', ['nested', -1], "Wrong path segment found after: 'nested'. Index can not be negative, '-1' given."],
+            ['attribute', ['nested', 1, ''], "Wrong path segment found after: 'nested[1]'. Path segment can not be empty string."],
         ];
     }
 
