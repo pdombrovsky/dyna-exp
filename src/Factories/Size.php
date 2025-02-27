@@ -3,7 +3,7 @@
 namespace DynaExp\Factories;
 
 use DynaExp\Factories\Traits\ConditionTrait;
-use DynaExp\Nodes\Path;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Size as SizeNode;
 
 final class Size
@@ -13,9 +13,9 @@ final class Size
     private SizeNode $pathNode;
 
     /**
-     * @param Path $path
+     * @param PathNode $path
      */
-    public function __construct(Path $path)
+    public function __construct(PathNode $path)
     {
         $this->pathNode = new SizeNode([$path]);
     }

@@ -10,7 +10,7 @@ use DynaExp\Evaluation\Evaluator;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\Path;
+use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Size;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +21,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluatePath()
     {
-        $path = new Path(['attribute', 'nested1', 2, 'nested2']);
+        $path = new PathNode(['attribute', 'nested1', 2, 'nested2']);
 
         $evaluator = new Evaluator();
 
@@ -47,7 +47,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluateSize()
     {
-        $path = new Path(['attribute', 'nested1', 2, 'nested2']);
+        $path = new PathNode(['attribute', 'nested1', 2, 'nested2']);
 
         $size = new Size([$path]);
 
@@ -75,7 +75,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function conditionProvider(): array
     {
-        $path = new Path(['attribute', 'nested1', 0, 'nested2', 3]);
+        $path = new PathNode(['attribute', 'nested1', 0, 'nested2', 3]);
 
         return [
             [
@@ -305,7 +305,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function keyConditionProvider(): array
     {
-        $path = new Path(['keyAttribute']);
+        $path = new PathNode(['keyAttribute']);
 
         return [
             [
@@ -383,7 +383,7 @@ final class EvaluatorSimpleTest extends TestCase
                 new KeyCondition(
                     KeyConditionTypeEnum::andKeyCond,
                     new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $path, 'value'),
-                    new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, new Path(['keyAttribute2']), 10)
+                    new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, new PathNode(['keyAttribute2']), 10)
                 ),
                 '#0 = :0 AND #1 < :1',
                 [
@@ -406,7 +406,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function operationProvider(): array
     {
-        $path = new Path(['someAttribute', 1, 'nestedAttribute']);
+        $path = new PathNode(['someAttribute', 1, 'nestedAttribute']);
 
         return [
             [
@@ -421,7 +421,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::plusValue, $path, new Path(['otherAttibute'])),
+                new Operation(OperationTypeEnum::plusValue, $path, new PathNode(['otherAttibute'])),
                 '#0[1].#1 + #2',
                 [
                     '#0' => 'someAttribute',
@@ -442,7 +442,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::minusValue, $path, new Path(['otherAttibute'])),
+                new Operation(OperationTypeEnum::minusValue, $path, new PathNode(['otherAttibute'])),
                 '#0[1].#1 - #2',
                 [
                     '#0' => 'someAttribute',
@@ -463,7 +463,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::listAppend, $path, new Path(['otherAttibute'])),
+                new Operation(OperationTypeEnum::listAppend, $path, new PathNode(['otherAttibute'])),
                 'list_append(#0[1].#1, #2)',
                 [
                     '#0' => 'someAttribute',
@@ -484,7 +484,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::listPrepend, $path, new Path(['otherAttibute'])),
+                new Operation(OperationTypeEnum::listPrepend, $path, new PathNode(['otherAttibute'])),
                 'list_append(#2, #0[1].#1)',
                 [
                     '#0' => 'someAttribute',
