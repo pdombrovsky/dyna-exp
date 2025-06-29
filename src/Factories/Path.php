@@ -216,6 +216,16 @@ final readonly class Path extends AbstractNode implements Stringable
 
         return new self($this->pathNode->child($segments));
     }
+    /**
+     * Check if the current factory path is parent of other
+     * 
+     * @param Path $other
+     * @return bool
+     */
+    public function isParentOf(Path $other): bool
+    {
+        return $this->pathNode->isParentOf($other->pathNode);
+    }
 
     /**
      * Returns last segment for given path node
@@ -278,7 +288,7 @@ final readonly class Path extends AbstractNode implements Stringable
     }
 
     /**
-     * @param array $segments
+     * @param array<string|int> $segments
      * @return string
      */
     private static function getSegmentsValidationMessage(array $segments): string
