@@ -94,6 +94,25 @@ final readonly class PathNode implements Stringable, EvaluableInterface
     }
 
     /**
+     * Check if the current node is parent of other
+     * 
+     * @param PathNode $other
+     * @return bool
+     */
+    public function isParentOf(PathNode $other): bool
+    {
+        $p = $this->segments;
+        $c = $other->segments;
+
+        if (count($p) >= count($c)) {
+
+            return false;
+        }
+
+        return array_slice($c, 0, count($p)) === $p;
+    }
+
+    /**
      * Returns last segment for given path
      * 
      * @return int|string
