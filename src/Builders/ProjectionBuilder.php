@@ -2,7 +2,6 @@
 
 namespace DynaExp\Builders;
 
-use DynaExp\Factories\Path;
 use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Projection;
 
@@ -14,9 +13,9 @@ final class ProjectionBuilder
     private array $nodes;
 
     /**
-     * @param Path ...$paths
+     * @param ProjectableInterface ...$paths
      */
-    public function __construct(Path ...$paths)
+    public function __construct(ProjectableInterface ...$paths)
     {
         $this->nodes = [];
 
@@ -27,10 +26,10 @@ final class ProjectionBuilder
     }
 
     /**
-     * @param Path ...$paths
+     * @param  ProjectableInterface ...$paths
      * @return ProjectionBuilder
      */
-    public function add(Path ...$paths) : ProjectionBuilder
+    public function add(ProjectableInterface ...$paths) : ProjectionBuilder
     {
         foreach ($paths as $path) {
 
