@@ -2,6 +2,7 @@
 
 namespace DynaExp\Factories;
 
+use DynaExp\Builders\ProjectableInterface;
 use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Enums\ConditionTypeEnum;
@@ -17,7 +18,7 @@ use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\PathNode;
 use Stringable;
 
-final readonly class Path extends AbstractNode implements Stringable
+final readonly class Path extends AbstractNode implements Stringable, ProjectableInterface
 {
     use ConditionTrait;
     use OperationTrait;

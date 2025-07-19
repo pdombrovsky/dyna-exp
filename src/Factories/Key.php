@@ -2,18 +2,27 @@
 
 namespace DynaExp\Factories;
 
+use DynaExp\Builders\ProjectableInterface;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\PathNode;
 use InvalidArgumentException;
 
-final class Key
+final class Key implements ProjectableInterface
 {
     /**
      * @param PathNode $pathNode
      */
     private function __construct(private PathNode $pathNode)
     {
+    }
+
+    /**
+     * @return PathNode
+     */
+    public function project(): PathNode
+    {
+        return $this->pathNode;
     }
 
     /**
