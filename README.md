@@ -170,8 +170,9 @@ $p = Path::create('counter');
 $setIfNot = $p->set($p->ifNotExists(0));  // SET counter = if_not_exists(counter, :0)
 
 // Preparing a default payload and storing a backup
-$score = Path::create('items', 0, 'score');
-$backup = Path::create('items', 0, 'backup');
+$map = Path::create('items', 0);
+$score = $map->child('score');
+$backup = $map->child('backup');
 $update = (new DynaExp\Builders\UpdateBuilder())
     ->add(
         $score->set(
@@ -202,30 +203,27 @@ use DynaExp\Evaluation\EvaluatorFactory;
 $a = Path::create('a');
 $b = Path::create('b');
 
-$cond1 = $a->greaterThan(5);           // a > :0
-$cond2 = $b->between(1, 10);           // b BETWEEN :1 AND :2
-
-$and = ConditionBuilder::allOf($cond1, $cond2)->build();
-$or  = ConditionBuilder::anyOf($cond1, $cond2)->build();
-
 $nested = (new ConditionBuilder($a->attributeExists()))
     ->and(
         ConditionBuilder::anyOf(
-            $b->notBetween(5, 10),     // renders as: NOT b BETWEEN ...
-            $b->in('x', 'y', 'z')      // renders as: b IN (...)
-        )->and($a->contains('x'))
+            $b->notBetween(5, 10), // renders as: NOT b BETWEEN ...
+            $b->in('x', 'y', 'z')  // renders as: b IN (...)
+        ),
     )
+    ->and($a->contains('x'))
     ->build();
 
 // Evaluate to see final strings/aliases
 $ctx = (new ExpressionBuilder())
-    ->setFilter($and)
-    ->build(new EvaluatorFactory());
+    ->setFilter($nested)
+    ->build(new EvaluatorFactory())
+    ->toArray();
 
-$out = $ctx->toArray();
-// $out['FilterExpression'] === '#0 > :0 AND #1 BETWEEN :1 AND :2'
-// $out['ExpressionAttributeNames'] === ['#0' => 'a', '#1' => 'b']
-// $out['ExpressionAttributeValues'] === [':0' => 5, ':1' => 1, ':2' => 10]
+// $ctx === [
+//     'FilterExpression' => 'attribute_exists (#0) AND (NOT #1 BETWEEN :0 AND :1 OR #1 IN (:2, :3, :4)) AND contains (#0, :5)',
+//     'ExpressionAttributeNames' => ['#0' => 'a', '#1' => 'b'],
+//     'ExpressionAttributeValues' => [':0' => 5, ':1' => 10, ':2' => 'x', ':3' => 'y', ':4' => 'z', ':5' => 'x'],
+// ];
 ```
 
 Notes:
@@ -279,38 +277,63 @@ Description:
 Examples:
 ```php
 use DynaExp\Builders\UpdateBuilder;
+  use DynaExp\Factories\Path;
+  use DynaExp\Builders\ExpressionBuilder;
+  use DynaExp\Evaluation\EvaluatorFactory;
+  
+  $counter = Path::create('counter');
+  $deprecatedFlag = Path::create('flags', 'deprecated');
+  
+  $update = (new UpdateBuilder())
+      ->add(
+          $counter->set(1),            // SET counter = :0
+          $deprecatedFlag->remove()    // REMOVE flags.deprecated
+      )
+      ->build();
+  
+  $ctx = (new ExpressionBuilder())
+      ->setUpdate($update)
+      ->build(new EvaluatorFactory())
+      ->toArray();
+  
+  // Example output:
+  // $ctx['UpdateExpression'] === 'SET #0 = :0 REMOVE #1.#2'
+  // $ctx['ExpressionAttributeNames'] === ['#0' => 'counter', '#1' => 'flags', '#2' => 'deprecated']
+  // $ctx['ExpressionAttributeValues'] === [':0' => 1]
+  ```
+
+### Nested operations for SET
+
+```php
+use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Factories\Path;
 use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Evaluation\EvaluatorFactory;
 
-$p = Path::create('counter');
-$set = $p->set(1);            // SET counter = :0
-$rem = $p->remove();          // REMOVE counter
+$listAttr = Path::create('listAttr');
+$counter  = Path::create('counter');
+
+$appendItems = $listAttr->set(
+    $listAttr->ifNotExists([])->listAppend([1, 2, 3])
+);
+
+$incrementCounter = $counter->set(
+    $counter->ifNotExists(0)->plus(1)
+);
 
 $update = (new UpdateBuilder())
-    ->add($set, $rem)
-    ->build();
-
-// Nested operations for SET
-$list   = Path::create('listAttr');
-$append = $list->set($list->listAppend([1,2,3]));     // SET listAttr = list_append(listAttr, :0)
-$init   = $p->set($p->ifNotExists(0));                // SET counter = if_not_exists(counter, :1)
-$inc    = $p->set($p->plus(1));                       // SET counter = counter + :2
-$dec    = $p->set($p->minus(2));                      // SET counter = counter - :3
-
-$update2 = (new UpdateBuilder())
-    ->add($append, $init, $inc, $dec)
+    ->add($appendItems, $incrementCounter)
     ->build();
 
 $ctx = (new ExpressionBuilder())
-    ->setUpdate($update2)
-    ->build(new EvaluatorFactory());
+    ->setUpdate($update)
+    ->build(new EvaluatorFactory())
+    ->toArray();
 
-$out = $ctx->toArray();
-// Example:
-// $out['UpdateExpression'] === 'SET #0 = list_append(#0, :0), #1 = if_not_exists(#1, :1), #1 = #1 + :2, #1 = #1 - :3'
-// $out['ExpressionAttributeNames'] === ['#0' => 'listAttr', '#1' => 'counter']
-// $out['ExpressionAttributeValues'] contains your values for :0, :1, :2, :3
+// Example output:
+// $ctx['UpdateExpression'] === 'SET #0 = list_append(if_not_exists(#0, :0), :1), #1 = if_not_exists(#1, :2) + :3'
+// $ctx['ExpressionAttributeNames'] === ['#0' => 'listAttr', '#1' => 'counter']
+// $ctx['ExpressionAttributeValues'] === [':0' => [], ':1' => [1, 2, 3], ':2' => 0, ':3' => 1]
 ```
 
 Notes:
@@ -319,12 +342,13 @@ Notes:
 ### Complex nested update
 
 ```php
-$score = Path::create('items', 0, 'score');
-$backup = Path::create('items', 0, 'scoreBackup');
-$history = Path::create('items', 0, 'history');
-$historyPayload = Path::create('items', 0, 'historyPayload');
+$itemRoot = Path::create('items', 0);
+$score = $itemRoot->child('score');
+$backup = $itemRoot->child('scoreBackup');
+$history = $itemRoot->child('history');
+$historyPayload = $itemRoot->child('historyPayload');
 $stats = Path::create('stats', 'totalScore');
-$tags = Path::create('items', 0, 'tags');
+$tags = $itemRoot->child('tags');
 
 $update = (new UpdateBuilder())
     ->add(
@@ -359,14 +383,36 @@ Description:
 
 Examples:
 ```php
+use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
+use DynaExp\Builders\ProjectionBuilder;
+use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Evaluation\EvaluatorFactory;
+use DynaExp\Factories\Key;
+use DynaExp\Factories\Path;
+
+$name = Path::create('name');
+$price = Path::create('price');
+$status = Path::create('status');
+
+$filter = ConditionBuilder::allOf(
+    $price->lessThan(100),
+    $status->equal('ACTIVE')
+)->build();
+
+$projection = (new ProjectionBuilder($name, $price))->build();
+
+$keyCondition = Key::create('pk')->equal('PRODUCT#123');
+
+$update = (new UpdateBuilder())
+    ->add($status->set('ACTIVE'))
+    ->build();
 
 $expr = (new ExpressionBuilder())
-    ->setFilter($and ?? null)
-    ->setUpdate($update ?? null)
-    ->setProjection($projection ?? null)
-    ->setKeyCondition($keyCond ?? null)
+    ->setFilter($filter)
+    ->setProjection($projection)
+    ->setKeyCondition($keyCondition)
+    ->setUpdate($update)
     ->build(new EvaluatorFactory());
 
 $array = $expr->toArray();
