@@ -100,23 +100,24 @@ trait ConditionTrait
     /**
      * Creates a condition to check if the attribute value is within the specified range of values.
      *
-     * @param mixed ...$range The set of values to check against.
+     * @param mixed $value The first value to check against.
+     * @param mixed ...$range Additional values to check against.
      * @return Condition
      */
-    public function in(mixed ...$range): Condition
+    public function in(mixed $value, mixed ...$range): Condition
     {
-        return new Condition(ConditionTypeEnum::inCond, $this->pathNode, ...$range);
+        return new Condition(ConditionTypeEnum::inCond, $this->pathNode, $value, ...$range);
     }
 
     /**
      * Creates a condition to check if the attribute value is not within the specified range of values.
      *
-     * @param mixed ...$range The set of values to check against.
+     * @param mixed $value The first value to check against.
+     * @param mixed ...$range Additional values to check against.
      * @return Condition
      */
-
-    public function notIn(mixed ...$range): Condition
+    public function notIn(mixed $value, mixed ...$range): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->in($range));
+        return new Condition(ConditionTypeEnum::notCond, $this->in($value, ...$range));
     }
 }

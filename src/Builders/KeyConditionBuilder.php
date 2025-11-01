@@ -29,6 +29,20 @@ final class KeyConditionBuilder
     }
 
     /**
+     * Creates a builder that ANDs the provided conditions.
+     * 
+     * @param KeyCondition $left
+     * @param KeyCondition $right
+     * @return self
+     */
+    public static function allOf(KeyCondition $left, KeyCondition $right): self
+    {
+        $builder = new self($left);
+        $builder->and($right);
+        return $builder;
+    }
+
+    /**
      * Adds a right-hand side KeyCondition with an AND operator to the existing left-hand side KeyCondition.
      * If a right-hand side KeyCondition has already been set, it will be overwritten.
      * This method is intended for a single AND combination scenario.

@@ -26,6 +26,32 @@ final class ConditionBuilder
             ? static::parenthesizeInnerCondition($condition->build())
             : $condition;
     }
+    
+    /**
+     * Creates a builder that ANDs the provided conditions.
+     *
+     * @param Condition|self ...$conditions
+     * @return ConditionBuilder
+     */
+    public static function allOf(Condition|self ...$conditions): ConditionBuilder
+    {
+        $builder = new self();
+        $builder->and(...$conditions);
+        return $builder;
+    }
+
+    /**
+     * Creates a builder that ORs the provided conditions.
+     *
+     * @param Condition|self ...$conditions
+     * @return ConditionBuilder
+     */
+    public static function anyOf(Condition|self ...$conditions): ConditionBuilder
+    {
+        $builder = new self();
+        $builder->or(...$conditions);
+        return $builder;
+    }
 
     /**
      * Appends one or more conditions with a logical AND operator.

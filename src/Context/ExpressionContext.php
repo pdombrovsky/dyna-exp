@@ -4,20 +4,18 @@ namespace DynaExp\Context;
 
 use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Exceptions\UnexpectedValueException;
-use DynaExp\Nodes\EvaluableInterface;
 
 final class ExpressionContext
 {
     /**
-     * @param array<string, EvaluableInterface|mixed> $components
+     * @param array<string, string|array<string, mixed>> $components
      */
     public function __construct(private array $components)
     {
     }
 
     /**
-     * @param ExpressionTypeEnum $type
-     * @return bool
+     * Checks existence of a component by type.
      */
     public function has(ExpressionTypeEnum $type): bool
     {
@@ -25,15 +23,19 @@ final class ExpressionContext
     }
 
     /**
-     * @return array<string,string|mixed>
+     * @param null|callable(array<string,mixed>):array<string,mixed> $valuesTransform Callback to transform ExpressionAttributeValues map
+     * @return array<string, string|array<string, mixed>>
      */
-    public function toArray(?callable $valuesTransformator = null): array
+    public function toArray(?callable $valuesTransform = null): array
     {
         $components = $this->components;
 
-        if (is_callable($valuesTransformator) && $this->has(ExpressionTypeEnum::values)) {
+        if (is_callable($valuesTransform) && $this->has(ExpressionTypeEnum::values)) {
 
-            $transformedValues = $valuesTransformator($this->components[ExpressionTypeEnum::values->value]);
+            /** @var array<string, mixed> $values */
+            $values = $this->components[ExpressionTypeEnum::values->value];
+
+            $transformedValues = $valuesTransform($values);
 
             if (!is_array($transformedValues)) {
 

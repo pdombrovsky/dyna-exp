@@ -5,13 +5,13 @@ namespace DynaExp\Evaluation\Aliases;
 final class Names
 {
     /**
-     * @var string[]
+     * @var array<string,string>
      */
-    private array $aliasMap;
+    private array $nameAliasMap;
 
     public function __construct()
     {
-        $this->aliasMap = [];
+        $this->nameAliasMap = [];
     }
 
     /**
@@ -20,15 +20,14 @@ final class Names
      */
     public function alias(string $name): string
     {
-        $alias = array_search($name, $this->aliasMap);
+        if (isset($this->nameAliasMap[$name])) {
 
-        if (false === $alias) {
-
-            $alias = '#' . $this->count();
-
-            $this->aliasMap[$alias] = $name;
-
+            return $this->nameAliasMap[$name];
         }
+
+        $alias = '#' . $this->count();
+
+        $this->nameAliasMap[$name] = $alias;
 
         return $alias;
     }
@@ -38,7 +37,7 @@ final class Names
      */
     public function getMap(): array
     {
-        return $this->aliasMap;
+        return array_flip($this->nameAliasMap);
     }
 
     /**
@@ -46,6 +45,6 @@ final class Names
      */
     public function count(): int
     {
-        return count($this->aliasMap);
+        return count($this->nameAliasMap);
     }
 }
