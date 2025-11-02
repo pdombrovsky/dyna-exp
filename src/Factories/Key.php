@@ -6,7 +6,7 @@ use DynaExp\Builders\ProjectableInterface;
 use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\PathNode;
-use InvalidArgumentException;
+use DynaExp\Exceptions\InvalidArgumentException;
 
 final class Key implements ProjectableInterface
 {

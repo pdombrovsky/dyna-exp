@@ -20,6 +20,8 @@ final class Values
      */
     public function alias(mixed $value): string
     {
+        // Always allocate a fresh alias; duplicate payloads are intentionally not deduplicated
+        // to avoid ambiguity with mutable/complex values.
         $alias = ':' . $this->count();
 
         $this->aliasMap[$alias] = $value;

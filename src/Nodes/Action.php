@@ -12,7 +12,7 @@ final readonly class Action implements EvaluableInterface, Stringable
     use NodesToStringTrait;
 
     /**
-     * @var mixed[]
+     * @var array<mixed>
      */
     public array $nodes;
 
