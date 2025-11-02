@@ -1,6 +1,6 @@
 ﻿# DynaExp
 
-Streamlines building DynamoDB expressions (ConditionExpression, FilterExpression, KeyConditionExpression, UpdateExpression, ProjectionExpression) with a concise, typed, and composable API.
+Build DynamoDB expressions (ConditionExpression, FilterExpression, KeyConditionExpression, UpdateExpression, ProjectionExpression) with a small set of typed helpers. DynaExp keeps the verbose string juggling out of your application code while staying close to native DynamoDB semantics.
 
 ## Requirements
 
@@ -8,15 +8,19 @@ Streamlines building DynamoDB expressions (ConditionExpression, FilterExpression
 
 ## Installation
 
-- Composer package: `pdombrovsky/dyna-exp`
+> ⚠️ The library is currently in **alpha**. Interfaces may change between releases until we hit the stable 1.x line.
+
+```bash
+composer require pdombrovsky/dyna-exp:^1.0@alpha
+```
 
 ## Overview
 
-- Nodes: immutable, typed structures representing DynamoDB expression parts (PathNode, Condition, Operation, Projection, Update, etc.). PathNode keeps validated segments, exposes traversal/search helpers, and participates in alias generation.
-- Factories: developer-facing entry points that wrap nodes and expose Dynamo-aware helpers (Path, Key, Size, IfNotExists). A single Path instance can produce conditions, updates, projections, search expressions, and aliases without re-parsing strings.
-- Builders: fluent composition (ConditionBuilder, KeyConditionBuilder, ProjectionBuilder, UpdateBuilder, ExpressionBuilder).
-- Evaluator: converts nodes into DynamoDB strings, allocates deterministic ExpressionAttributeNames/ExpressionAttributeValues, and deduplicates aliases across reused nodes.
-- ExpressionContext: read-only result carrier with helpers (`toArray()` + optional value transform). Marshalling to DynamoDB types stays in user land so the library remains SDK-agnostic.
+- **Nodes** – small immutable objects such as `Condition`, `Operation`, `Projection`, `Update`, or `PathNode`. They hold the typed data that eventually becomes part of an expression string and remember everything they need (segments, traversal helpers, aliases, etc.).
+- **Factories** – ergonomic wrappers (`Path`, `Key`, `Size`, `IfNotExists`, …) that expose DynamoDB-oriented helpers. One `Path` instance can create conditions, updates, projections, search expressions, and aliases without re-parsing strings.
+- **Builders** – fluent APIs for assembling nodes (`ConditionBuilder`, `KeyConditionBuilder`, `ProjectionBuilder`, `UpdateBuilder`, `ExpressionBuilder`).
+- **Evaluator** – turns nodes into DynamoDB strings, allocates deterministic `ExpressionAttributeNames`/`ExpressionAttributeValues`, and keeps alias usage consistent even when nodes are reused.
+- **ExpressionContext** – a read-only result object with a convenient `toArray()` method (plus optional value transforms). You stay in control of marshalling to DynamoDB types, so the library works with any SDK or transport layer.
 
 ## Quick Start
 
@@ -57,11 +61,9 @@ The builders never mutate state after build time, so the same nodes can be reuse
 
 ## Path
 
-Description:
-- Entry point for attribute paths across filters, projections, key conditions, and updates. Wraps an immutable PathNode with validated segments.
-- PathNode keeps DynamoDB-aware metadata: deterministic string conversion, JMESPath-style `searchExpression()` output, alias-aware evaluation via the `Evaluator`, and traversal helpers (`parent()`, `child()`, `isParentOf()`, `lastSegment()`).
-- Path instances expose condition/update helpers from `ConditionTrait`/`OperationTrait` (equality, range, membership, attribute existence/type checks, arithmetic, list append/prepend, delete/remove, `if_not_exists`, `size()`), so a single object can be reused across expression types.
-- Paths are immutable; reuse them across builders or evaluations without recalculating segments or desynchronising alias counters.
+`Path` is the main building block for attribute access in filters, projections, key conditions, and updates. Under the hood it wraps an immutable `PathNode`, validates every segment, and keeps DynamoDB-specific metadata such as deterministic string representations, `searchExpression()` output, and alias-friendly evaluation.  
+
+A single `Path` object can be reused across the whole expression: the helper methods mixed in from `ConditionTrait` and `OperationTrait` let you create equality/range/containment checks, attribute existence/type predicates, arithmetic updates, list append/prepend operations, `if_not_exists`, `size()`, and more – all off the same root path.
 
 Examples:
 ```php
@@ -338,6 +340,7 @@ $ctx = (new ExpressionBuilder())
 
 Notes:
 - DynamoDB evaluates update expression sections internally in the order **REMOVE → SET → ADD → DELETE**. The service accepts any section order in your request payload and normalizes it when processing.
+- `listPrepend()` is a convenience helper: DynamoDB supports only `list_append(left, right)`. Implementing a prepend behaviour strictly would require introducing dedicated wrapper objects for values so callers could control argument order, which would make the public API more awkward to use; instead the helper simply swaps the arguments to preserve the mental model (`list_prepend(target, payload)` → `list_append(payload, target)`).
 
 ### Complex nested update
 
