@@ -213,10 +213,9 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function child(string|int ...$segments): self
     {
-        self::validateSegments($segments);
-
         return new self($this->pathNode->child($segments));
     }
+
     /**
      * Check if the current factory path is parent of other
      * 
@@ -264,69 +263,16 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public static function create(string $attribute, string|int ...$segments): self
     {
-        if ($attribute === '') {
-            return throw new InvalidArgumentException("Attribute can not be empty string.");
-        }
-
-        self::validateSegments($segments);
-
-        return new Path(new PathNode([$attribute, ...$segments]));
-    }
-
-    /**
-     * @param array<string|int> $segments
-     * @throws \DynaExp\Exceptions\InvalidArgumentException
-     * @return void
-     */
-    private static function validateSegments(array $segments): void
-    {
-        $validationMessage = self::getSegmentsValidationMessage($segments);
-
-        if ($validationMessage) {
-
-            throw new InvalidArgumentException($validationMessage);
-        }
-    }
-
-    /**
-     * @param array<string|int> $segments
-     * @return string
-     */
-    private static function getSegmentsValidationMessage(array $segments): string
-    {
-        $checkedSegments = [];
-        $errorMessage = '';
-        foreach ($segments as $segment) {
-
-            if (is_int($segment) && $segment < 0) {
-
-                $errorMessage = "Index can not be negative, '$segment' given.";
-                break;
-            }
-
-            if ($segment === '') {
-
-                $errorMessage = 'Path segment can not be empty string.';
-                break;
-            }
-
-            $checkedSegments[] = $segment;
-        }
-
-        if ($errorMessage) {
-
-            $checked = (new PathNode($checkedSegments))->__tostring();
-
-            return "Wrong path segment found after: '$checked'. $errorMessage";
-        }
-
-        return '';
+        return new Path(PathNode::create($attribute, ...$segments));
     }
 
     /**
      * Creates path from string.
-     * Any dot will be treated as segments splitter.
-     * Any square bracket will be treated as index description.
+     * - Dot (.) splits attribute segments.
+     * - Brackets ([index]) denote list indexes.
+     * - Double quotes (") wrap an attribute name to allow dots inside it, e.g.:
+     *   attr1.attr2[3]."some.nested.attribute".attr4
+     *   Inside quotes, use \" to include a double quote character; a backslash is otherwise literal.
      * 
      * @param string $pathString
      * @throws InvalidArgumentException
@@ -344,6 +290,9 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
         $previousChar = '';
         $shouldProcessBuffer = false;
         $bracketLevel = 0;
+        $inQuotes = false;
+        $awaitingAttribute = false;
+        $lastDotIndex = -1;
 
         $length = strlen($pathString);
         $i = 0;
@@ -352,16 +301,63 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
 
             $char = $pathString[$i];
 
+            // Handle quoted attribute names
+            if ($inQuotes) {
+                if ($char === '\\') {
+                    $next = $pathString[$i + 1] ?? null;
+                    if ($next === '"') {
+                        // escape sequence for a quote inside quotes: \"
+                        $buffer .= '"';
+                        $previousChar = '"';
+                        $i += 2;
+                        continue;
+                    }
+                    // literal backslash
+                    $buffer .= '\\';
+                    $previousChar = '\\';
+                    $i++;
+                    continue;
+                }
+                if ($char === '"') {
+                    // close quotes, keep buffer until next delimiter
+                    $inQuotes = false;
+                    $previousChar = '"';
+                    $i++;
+                    continue;
+                }
+                $buffer .= $char;
+                $previousChar = $char;
+                $i++;
+                continue;
+            }
+
             switch ($char) {
                 case '.':
                     if ($bracketLevel > 0) {
                         throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
-                    if ($buffer === '' && ']' !== $previousChar) {
+                    if ($buffer === '' && ! in_array($previousChar, [']', '"'], true)) {
                         throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $i)));
                     }
 
                     $shouldProcessBuffer = false;
+                    $awaitingAttribute = true;
+                    $lastDotIndex = $i;
+                    break;
+                case '"':
+                    if ($bracketLevel > 0) {
+                        throw new InvalidArgumentException(sprintf("Quoted attribute name is not allowed inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if ($buffer !== '') {
+                        throw new InvalidArgumentException(sprintf("Unexpected '\"' inside attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+                    if (! in_array($previousChar, ['', '.'], true)) {
+                        throw new InvalidArgumentException(sprintf("Quoted attribute must start at beginning or after a dot. %s", self::processedSymbolsMessage($pathString, $i)));
+                    }
+
+                    $inQuotes = true;
+                    $shouldProcessBuffer = true;
+                    $awaitingAttribute = false;
                     break;
                 case '[':
                     if ($bracketLevel > 0) {
@@ -393,6 +389,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
                 default:
                     $buffer .= $char;
                     $shouldProcessBuffer = true;
+                    $awaitingAttribute = false;
             }
 
             if (! $shouldProcessBuffer && $buffer !== '') {
@@ -402,6 +399,14 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
 
             $previousChar = $char;
             $i++;
+        }
+
+        if ($awaitingAttribute) {
+            throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $lastDotIndex)));
+        }
+
+        if ($inQuotes) {
+            throw new InvalidArgumentException(sprintf("Unmatched quote. %s", self::processedSymbolsMessage($pathString, $i)));
         }
 
         if ($bracketLevel !== 0) {

@@ -1,6 +1,16 @@
 {
     "name": "pdombrovsky/dyna-exp",
-    "description": "Streamlines DynamoDB Expression Building",
+    "type": "library",
+    "description": "Fluent builders and typed helpers for DynamoDB expressions",
+    "keywords": [
+        "dynamodb",
+        "aws",
+        "expression",
+        "builder",
+        "query",
+        "update"
+    ],
+    "homepage": "https://github.com/pdombrovsky/dyna-exp",
     "license": "MIT",
     "authors": [
         {

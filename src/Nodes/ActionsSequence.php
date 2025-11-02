@@ -4,8 +4,6 @@ namespace DynaExp\Nodes;
 
 use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Evaluation\EvaluatorInterface;
-use DynaExp\Nodes\Traits\NodesToStringTrait;
-use Stringable;
 
 final readonly class ActionsSequence implements EvaluableInterface
 {
