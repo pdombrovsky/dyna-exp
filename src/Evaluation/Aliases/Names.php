@@ -37,7 +37,14 @@ final class Names
      */
     public function getMap(): array
     {
-        return array_flip($this->nameAliasMap);
+        $map = [];
+
+        foreach ($this->nameAliasMap as $name => $alias)
+        {
+          $map[$alias] = (string) $name;
+        }
+
+        return $map;
     }
 
     /**
