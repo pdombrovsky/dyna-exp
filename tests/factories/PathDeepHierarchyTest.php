@@ -28,7 +28,7 @@ final class PathDeepHierarchyTest extends TestCase
         $node = $path->project();
         $evaluator = new Evaluator();
 
-        $evaluated = $node->evaluate($evaluator);
+        $evaluated = $evaluator->evaluate($node);
 
         $this->assertSame('#0.#1.#2.#3[0].#4[1].#5.#6.#7.#8.#9', $evaluated);
 

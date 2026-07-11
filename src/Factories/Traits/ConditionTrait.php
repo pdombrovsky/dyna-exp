@@ -2,7 +2,6 @@
 
 namespace DynaExp\Factories\Traits;
 
-use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Nodes\Condition;
 
 trait ConditionTrait
@@ -15,7 +14,7 @@ trait ConditionTrait
      */
     public function equal(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::equalCond, $this->pathNode, $value);
+        return Condition::equal($this->pathNode, $value);
     }
 
     /**
@@ -26,7 +25,7 @@ trait ConditionTrait
      */
     public function notEqual(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::notEqualCond, $this->pathNode, $value);
+        return Condition::notEqual($this->pathNode, $value);
     }
 
     /**
@@ -37,7 +36,7 @@ trait ConditionTrait
      */
     public function lessThan(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::lessThanCond,$this->pathNode, $value);
+        return Condition::lessThan($this->pathNode, $value);
     }
 
     /**
@@ -48,7 +47,7 @@ trait ConditionTrait
      */
     public function lessThanEqual(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::lessThanEqualCond, $this->pathNode, $value);
+        return Condition::lessThanEqual($this->pathNode, $value);
     }
 
     /**
@@ -59,7 +58,7 @@ trait ConditionTrait
      */
     public function greaterThan(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::greaterThanCond, $this->pathNode, $value);
+        return Condition::greaterThan($this->pathNode, $value);
     }
 
     /**
@@ -70,7 +69,7 @@ trait ConditionTrait
      */
     public function greaterThanEqual(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::greaterThanEqualCond, $this->pathNode, $value);
+        return Condition::greaterThanEqual($this->pathNode, $value);
     }
 
     /**
@@ -82,7 +81,7 @@ trait ConditionTrait
      */
     public function between(mixed $lower, mixed $upper): Condition
     {
-        return new Condition(ConditionTypeEnum::betweenCond, $this->pathNode, $lower, $upper);
+        return Condition::between($this->pathNode, $lower, $upper);
     }
 
     /**
@@ -94,7 +93,7 @@ trait ConditionTrait
      */
     public function notBetween(mixed $lower, mixed $upper): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->between($lower, $upper));
+        return Condition::not($this->between($lower, $upper));
     }
 
     /**
@@ -106,7 +105,7 @@ trait ConditionTrait
      */
     public function in(mixed $value, mixed ...$range): Condition
     {
-        return new Condition(ConditionTypeEnum::inCond, $this->pathNode, $value, ...$range);
+        return Condition::in($this->pathNode, $value, ...$range);
     }
 
     /**
@@ -118,6 +117,6 @@ trait ConditionTrait
      */
     public function notIn(mixed $value, mixed ...$range): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->in($value, ...$range));
+        return Condition::not($this->in($value, ...$range));
     }
 }

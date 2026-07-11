@@ -38,7 +38,7 @@ final class ConditionBuilderStressTest extends TestCase
         $condition = $builder->build();
 
         $evaluator = new Evaluator();
-        $evaluated = $condition->evaluate($evaluator);
+        $evaluated = $evaluator->evaluate($condition);
 
         $this->assertSame(
             '#0 > :0 AND #1 > :1 AND #2 > :2 AND #3 > :3 AND #4 > :4 AND (#5 = :5 OR #5 = :6 OR (attribute_exists (#6) AND #6 <> :7))',

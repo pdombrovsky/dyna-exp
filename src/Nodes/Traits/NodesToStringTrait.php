@@ -2,19 +2,39 @@
 
 namespace DynaExp\Nodes\Traits;
 
+use DynaExp\Evaluation\EvaluatorInterface;
+use DynaExp\Nodes\EvaluableInterface;
 use JsonSerializable;
 use Stringable;
+use function array_key_last;
+use function get_resource_type;
+use function gettype;
+use function is_array;
+use function is_bool;
+use function is_callable;
+use function is_float;
+use function is_int;
+use function is_object;
+use function is_resource;
+use function is_string;
 
 trait NodesToStringTrait
 {
     /**
-     * Converts all nodes to string representations.
+     * Converts all operands to string representations.
      *
-     * @return string[]
+     * @return array<int|string, string>
      */
     private function nodesToString(): array
     {
-        return array_map([self::class, 'convert'], $this->nodes);
+        $convertedNodes = [];
+
+        foreach ($this->operands() as $operand) {
+
+            $convertedNodes[] = self::convert($operand);
+        }
+       
+        return $convertedNodes;
     }
 
     /**
@@ -158,12 +178,45 @@ trait NodesToStringTrait
      */
     public function __toString(): string
     {
-        return $this->convertToString($this->nodesToString());
+        return $this->format($this->nodesToString());
     }
 
     /**
-     * @param string[] $nodes
+     * @param EvaluatorInterface $evaluator
      * @return string
      */
-    abstract protected function convertToString(array $nodes): string;
+    public function evaluate(EvaluatorInterface $evaluator): string
+    {
+        $convertedNodes = [];
+
+        foreach ($this->operands() as $operand) {
+
+            $convertedNodes[] = self::evaluateOperand($evaluator, $operand);
+        }
+
+        return $this->format($convertedNodes);
+    }
+
+    /**
+     * @param EvaluatorInterface $evaluator
+     * @param mixed $operand
+     * @return string
+     */
+    private static function evaluateOperand(EvaluatorInterface $evaluator, mixed $operand): string
+    {
+        return $operand instanceof EvaluableInterface
+            ? $evaluator->evaluate($operand)
+            : $evaluator->aliasValue($operand);
+    }
+
+    /**
+     * @param array<int|string, string> $nodes
+     * @return string
+     */
+    abstract protected function format(array $nodes): string;
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    abstract protected function operands(): array;
 }

@@ -11,8 +11,6 @@ final class PathNodeSearchExpressionTest extends TestCase
     public static function expressionsProvider(): array
     {
         return [
-            // empty path
-            [[], false, ''],
             // simple attributes
             [['a'], false, '"a"'],
             [['a', 'b'], false, '"a"."b"'],
@@ -25,6 +23,11 @@ final class PathNodeSearchExpressionTest extends TestCase
             [['a"b'], false, '"a\"b"'],
             // attribute with backslash inside
             [['a\\b'], false, '"a\\\\b"'],
+            // control characters are escaped as JSON string content
+            [["line\nbreak"], false, '"line\nbreak"'],
+            [["tab\tchar"], false, '"tab\tchar"'],
+            [["carriage\rreturn"], false, '"carriage\rreturn"'],
+            [["null\0byte"], false, '"null\u0000byte"'],
             // multiple indexes and attributes
             [['a', 0, 'b', 10, 'c'], false, '"a"[0]."b"[10]."c"'],
             // reset indexes across multiple
@@ -36,10 +39,45 @@ final class PathNodeSearchExpressionTest extends TestCase
         ];
     }
 
+    /**
+     * @param non-empty-list<string|int> $segments
+     */
     #[DataProvider('expressionsProvider')]
     public function testSearchExpression(array $segments, bool $resetIndexes, string $expected): void
     {
-        $node = new PathNode($segments);
+        $node = PathNode::create(...$segments);
         $this->assertSame($expected, $node->searchExpression($resetIndexes));
+    }
+
+    public static function marshaledExpressionsProvider(): array
+    {
+        return [
+            // top-level AttributeValue wrapper
+            [['name'], false, '"name"'],
+            // nested map/list path to AttributeValue wrapper
+            [['profile', 'names', 2, 'first'], false, '"profile".M."names".L[2].M."first"'],
+            // reset list indexes for shape/sample lookup
+            [['profile', 'names', 2, 'first'], true, '"profile".M."names".L[0].M."first"'],
+            // special attribute names are still quoted as JMESPath identifiers
+            [['a.b', 'quote"key', 1, "line\nbreak"], false, '"a.b".M."quote\"key".L[1].M."line\nbreak"'],
+            // top-level container wrappers stay at the top-level attribute
+            [['settings'], false, '"settings"'],
+            [['items'], false, '"items"'],
+        ];
+    }
+
+    /**
+     * @param non-empty-list<string|int> $segments
+     */
+    #[DataProvider('marshaledExpressionsProvider')]
+    public function testMarshaledSearchExpression(
+        array $segments,
+        bool $resetIndexes,
+        string $expected,
+    ): void
+    {
+        $node = PathNode::create(...$segments);
+
+        $this->assertSame($expected, $node->marshaledSearchExpression($resetIndexes));
     }
 }

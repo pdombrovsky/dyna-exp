@@ -3,9 +3,6 @@
 namespace DynaExp\Tests\Evaluation;
 
 use DynaExp\Enums\AttributeTypeEnum;
-use DynaExp\Enums\ConditionTypeEnum;
-use DynaExp\Enums\KeyConditionTypeEnum;
-use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Evaluation\Evaluator;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\KeyCondition;
@@ -21,13 +18,13 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluatePath()
     {
-        $path = new PathNode(['attribute', 'nested1', 2, 'nested2']);
+        $path = PathNode::create('attribute', 'nested1', 2, 'nested2');
 
         $evaluator = new Evaluator();
 
         $this->assertSame(
             '#0.#1[2].#2',
-            $path->evaluate($evaluator)
+            $evaluator->evaluate($path)
         );
 
         $this->assertSame(
@@ -47,15 +44,15 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluateSize()
     {
-        $path = new PathNode(['attribute', 'nested1', 2, 'nested2']);
+        $path = PathNode::create('attribute', 'nested1', 2, 'nested2');
 
-        $size = new Size([$path]);
+        $size = Size::of($path);
 
         $evaluator = new Evaluator();
 
         $this->assertSame(
             'size (#0.#1[2].#2)',
-            $size->evaluate($evaluator)
+            $evaluator->evaluate($size)
         );
 
         $this->assertSame(
@@ -75,11 +72,11 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function conditionProvider(): array
     {
-        $path = new PathNode(['attribute', 'nested1', 0, 'nested2', 3]);
+        $path = PathNode::create('attribute', 'nested1', 0, 'nested2', 3);
 
         return [
             [
-                new Condition(ConditionTypeEnum::equalCond, $path, 'value'),
+                Condition::equal($path, 'value'),
                 '#0.#1[0].#2[3] = :0',
                 [
                     '#0' => 'attribute',
@@ -91,7 +88,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::notEqualCond, $path, [1, 2, 3]),
+                Condition::notEqual($path, [1, 2, 3]),
                 '#0.#1[0].#2[3] <> :0',
                 [
                     '#0' => 'attribute',
@@ -103,7 +100,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::lessThanCond, $path, [1, 2, 3]),
+                Condition::lessThan($path, [1, 2, 3]),
                 '#0.#1[0].#2[3] < :0',
                 [
                     '#0' => 'attribute',
@@ -115,7 +112,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::lessThanEqualCond, $path, [1, 2, 3]),
+                Condition::lessThanEqual($path, [1, 2, 3]),
                 '#0.#1[0].#2[3] <= :0',
                 [
                     '#0' => 'attribute',
@@ -127,7 +124,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::greaterThanCond, $path, [1, 2, 3]),
+                Condition::greaterThan($path, [1, 2, 3]),
                 '#0.#1[0].#2[3] > :0',
                 [
                     '#0' => 'attribute',
@@ -139,7 +136,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::greaterThanEqualCond, $path, [1, 2, 3]),
+                Condition::greaterThanEqual($path, [1, 2, 3]),
                 '#0.#1[0].#2[3] >= :0',
                 [
                     '#0' => 'attribute',
@@ -151,7 +148,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::attrTypeCond, $path, AttributeTypeEnum::map->value),
+                Condition::attributeType($path, AttributeTypeEnum::map->value),
                 'attribute_type (#0.#1[0].#2[3], :0)',
                 [
                     '#0' => 'attribute',
@@ -163,7 +160,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::beginsWithCond, $path, 'abc'),
+                Condition::beginsWith($path, 'abc'),
                 'begins_with (#0.#1[0].#2[3], :0)',
                 [
                     '#0' => 'attribute',
@@ -175,7 +172,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::containsCond, $path, 'abc'),
+                Condition::contains($path, 'abc'),
                 'contains (#0.#1[0].#2[3], :0)',
                 [
                     '#0' => 'attribute',
@@ -187,7 +184,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::betweenCond, $path, 1, 10),
+                Condition::between($path, 1, 10),
                 '#0.#1[0].#2[3] BETWEEN :0 AND :1',
                 [
                     '#0' => 'attribute',
@@ -200,7 +197,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::attrExistsCond, $path),
+                Condition::attributeExists($path),
                 'attribute_exists (#0.#1[0].#2[3])',
                 [
                     '#0' => 'attribute',
@@ -210,7 +207,7 @@ final class EvaluatorSimpleTest extends TestCase
                 []
             ],
             [
-                new Condition(ConditionTypeEnum::inCond, $path, 1, 2, 4, 10),
+                Condition::in($path, 1, 2, 4, 10),
                 '#0.#1[0].#2[3] IN (:0, :1, :2, :3)',
                 [
                     '#0' => 'attribute',
@@ -225,7 +222,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(ConditionTypeEnum::notCond, new Condition(ConditionTypeEnum::containsCond, $path, 'abc')),
+                Condition::not(Condition::contains($path, 'abc')),
                 'NOT contains (#0.#1[0].#2[3], :0)',
                 [
                     '#0' => 'attribute',
@@ -237,10 +234,9 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(
-                    ConditionTypeEnum::andCond,
-                    new Condition(ConditionTypeEnum::greaterThanCond, $path, 5),
-                    new Condition(ConditionTypeEnum::lessThanCond, $path, 10)
+                Condition::and(
+                    Condition::greaterThan($path, 5),
+                    Condition::lessThan($path, 10)
                 ),
                 '#0.#1[0].#2[3] > :0 AND #0.#1[0].#2[3] < :1',
                 [
@@ -254,10 +250,9 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(
-                    ConditionTypeEnum::orCond,
-                    new Condition(ConditionTypeEnum::greaterThanCond, $path, 25),
-                    new Condition(ConditionTypeEnum::lessThanCond, $path, 0)
+                Condition::or(
+                    Condition::greaterThan($path, 25),
+                    Condition::lessThan($path, 0)
                 ),
                 '#0.#1[0].#2[3] > :0 OR #0.#1[0].#2[3] < :1',
                 [
@@ -271,14 +266,11 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Condition(
-                    ConditionTypeEnum::notCond,
-                    new Condition(
-                        ConditionTypeEnum::parenthesesCond,
-                        new Condition(
-                            ConditionTypeEnum::orCond,
-                            new Condition(ConditionTypeEnum::greaterThanCond, $path, 25),
-                            new Condition(ConditionTypeEnum::lessThanCond, $path, 0)
+                Condition::not(
+                    Condition::parenthesized(
+                        Condition::or(
+                            Condition::greaterThan($path, 25),
+                            Condition::lessThan($path, 0)
                         ),
                     )
                 ),
@@ -305,11 +297,11 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function keyConditionProvider(): array
     {
-        $path = new PathNode(['keyAttribute']);
+        $path = PathNode::create('keyAttribute');
 
         return [
             [
-                new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $path, 'value'),
+                KeyCondition::equal($path, 'value'),
                 '#0 = :0',
                 [
                     '#0' => 'keyAttribute',
@@ -319,7 +311,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, $path, 124365),
+                KeyCondition::lessThan($path, 124365),
                 '#0 < :0',
                 [
                     '#0' => 'keyAttribute',
@@ -329,7 +321,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::lessThanEqualKeyCond, $path, 124365),
+                KeyCondition::lessThanEqual($path, 124365),
                 '#0 <= :0',
                 [
                     '#0' => 'keyAttribute',
@@ -339,7 +331,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::greaterThanKeyCond, $path, 124365),
+                KeyCondition::greaterThan($path, 124365),
                 '#0 > :0',
                 [
                     '#0' => 'keyAttribute',
@@ -349,7 +341,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::greaterThanEqualKeyCond, $path, 124365),
+                KeyCondition::greaterThanEqual($path, 124365),
                 '#0 >= :0',
                 [
                     '#0' => 'keyAttribute',
@@ -359,7 +351,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::beginsWithKeyCond, $path, 'abc'),
+                KeyCondition::beginsWith($path, 'abc'),
                 'begins_with (#0, :0)',
                 [
                     '#0' => 'keyAttribute',
@@ -369,7 +361,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $path, 1, 10),
+                KeyCondition::between($path, 1, 10),
                 '#0 BETWEEN :0 AND :1',
                 [
                     '#0' => 'keyAttribute',
@@ -380,10 +372,9 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new KeyCondition(
-                    KeyConditionTypeEnum::andKeyCond,
-                    new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $path, 'value'),
-                    new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, new PathNode(['keyAttribute2']), 10)
+                KeyCondition::and(
+                    KeyCondition::equal($path, 'value'),
+                    KeyCondition::lessThan(PathNode::create('keyAttribute2'), 10)
                 ),
                 '#0 = :0 AND #1 < :1',
                 [
@@ -406,11 +397,11 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function operationProvider(): array
     {
-        $path = new PathNode(['someAttribute', 1, 'nestedAttribute']);
+        $path = PathNode::create('someAttribute', 1, 'nestedAttribute');
 
         return [
             [
-                new Operation(OperationTypeEnum::plusValue, $path, 123),
+                Operation::plus($path, 123),
                 '#0[1].#1 + :0',
                 [
                     '#0' => 'someAttribute',
@@ -421,7 +412,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::plusValue, $path, new PathNode(['otherAttibute'])),
+                Operation::plus($path, PathNode::create('otherAttibute')),
                 '#0[1].#1 + #2',
                 [
                     '#0' => 'someAttribute',
@@ -431,7 +422,7 @@ final class EvaluatorSimpleTest extends TestCase
                 []
             ],
             [
-                new Operation(OperationTypeEnum::minusValue, $path, 123),
+                Operation::minus($path, 123),
                 '#0[1].#1 - :0',
                 [
                     '#0' => 'someAttribute',
@@ -442,7 +433,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::minusValue, $path, new PathNode(['otherAttibute'])),
+                Operation::minus($path, PathNode::create('otherAttibute')),
                 '#0[1].#1 - #2',
                 [
                     '#0' => 'someAttribute',
@@ -452,7 +443,7 @@ final class EvaluatorSimpleTest extends TestCase
                 []
             ],
             [
-                new Operation(OperationTypeEnum::listAppend, $path, [1,2,3]),
+                Operation::listAppend($path, [1,2,3]),
                 'list_append(#0[1].#1, :0)',
                 [
                     '#0' => 'someAttribute',
@@ -463,7 +454,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::listAppend, $path, new PathNode(['otherAttibute'])),
+                Operation::listAppend($path, PathNode::create('otherAttibute')),
                 'list_append(#0[1].#1, #2)',
                 [
                     '#0' => 'someAttribute',
@@ -473,7 +464,7 @@ final class EvaluatorSimpleTest extends TestCase
                 []
             ],
             [
-                new Operation(OperationTypeEnum::listPrepend, $path, [1,2,3]),
+                Operation::listPrepend($path, [1,2,3]),
                 'list_append(:0, #0[1].#1)',
                 [
                     '#0' => 'someAttribute',
@@ -484,7 +475,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                new Operation(OperationTypeEnum::listPrepend, $path, new PathNode(['otherAttibute'])),
+                Operation::listPrepend($path, PathNode::create('otherAttibute')),
                 'list_append(#2, #0[1].#1)',
                 [
                     '#0' => 'someAttribute',

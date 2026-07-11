@@ -35,11 +35,20 @@ final class PathCreationTest extends TestCase
         $this->assertSame($expectedOutput, $path->project()->__toString());
     }
 
+    public function testFromStringDistinguishesListIndexesFromLiteralBracketAttributeNames(): void
+    {
+        $this->assertSame(['a', 0, 'b'], Path::fromString('a[0].b')->project()->segments);
+        $this->assertSame(['a[0]b'], Path::fromString('"a[0]b"')->project()->segments);
+        $this->assertSame(['a[0]b'], Path::create('a[0]b')->project()->segments);
+    }
+
     /**
      * @return array
      */
     public static function invalidPathsCreationProvider(): array
     {
+        $tooLargeIndex = (string) PHP_INT_MAX . '0';
+
         return [
             ['', 'Input string cannot be empty.', InvalidArgumentException::class],
             ['.attribute', "Empty attribute name found. Processed symbols: ''.", InvalidArgumentException::class],
@@ -47,11 +56,14 @@ final class PathCreationTest extends TestCase
             ['attribute]', "Unmatched closing bracket. Processed symbols: 'attribute'.", InvalidArgumentException::class],
             ['listAttribute[]', "Empty index found. Processed symbols: 'listAttribute['.", InvalidArgumentException::class],
             ['listAttribute[1a]', "Only non-negative integers are allowed in index, '1a' given. Processed symbols: 'listAttribute[1a'.", InvalidArgumentException::class],
+            ['listAttribute[01]', "Index must not contain leading zeros, '01' given. Processed symbols: 'listAttribute[01'.", InvalidArgumentException::class],
+            ["listAttribute[$tooLargeIndex]", "Index is too large, '$tooLargeIndex' given. Processed symbols: 'listAttribute[$tooLargeIndex'.", InvalidArgumentException::class],
             ['attribute[1.0]', "Invalid character '.' inside brackets. Processed symbols: 'attribute[1'", InvalidArgumentException::class],
             ['listAttribute[-1]', "Only non-negative integers are allowed in index, '-1' given. Processed symbols: 'listAttribute[-1", InvalidArgumentException::class],
             ['listAttribute[1].next.attribute[1][2].br[oken', "Unmatched opening bracket. Processed symbols: 'listAttribute[1].next.attribute[1][2].br[oken'", InvalidArgumentException::class],
             ['[listAttribute', "Index used without a preceding attribute name. Processed symbols: ''.", InvalidArgumentException::class],
-            ['list[0][5].Attribute.[2]', "Index used without a preceding attribute name. Processed symbols: 'list[0][5].Attribute.'.", InvalidArgumentException::class]
+            ['list[0][5].Attribute.[2]', "Index used without a preceding attribute name. Processed symbols: 'list[0][5].Attribute.'.", InvalidArgumentException::class],
+            ['a[0]b', "Attribute name must start at beginning or after a dot. Processed symbols: 'a[0]'.", InvalidArgumentException::class],
         ];
     }
 

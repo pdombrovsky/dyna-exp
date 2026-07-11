@@ -2,6 +2,8 @@
 
 namespace DynaExp\Evaluation\Aliases;
 
+use function count;
+
 final class Names
 {
     /**

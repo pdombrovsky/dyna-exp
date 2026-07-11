@@ -16,7 +16,8 @@ final class NodesToStringTraitTest extends TestCase
             /** @var array<mixed> */
             public array $nodes;
             public function __construct(array $nodes) { $this->nodes = $nodes; }
-            public function convertToString(array $convertedNodes): string { return implode('|', $convertedNodes); }
+            protected function operands(): array { return $this->nodes; }
+            protected function format(array $convertedNodes): string { return implode('|', $convertedNodes); }
         };
     }
 
@@ -101,7 +102,8 @@ final class NodesToStringTraitTest extends TestCase
                 jsonEncode as public jsonEncodeProxy;
             }
             public array $nodes = [];
-            protected function convertToString(array $nodes): string { return implode('|', $nodes); }
+            protected function format(array $nodes): string { return implode('|', $nodes); }
+            protected function operands(): array { return $this->nodes; }
         };
 
         $json = new class implements JsonSerializable {

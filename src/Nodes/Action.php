@@ -3,41 +3,95 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\ActionTypeEnum;
-use DynaExp\Evaluation\EvaluatorInterface;
 use DynaExp\Nodes\Traits\NodesToStringTrait;
 use Stringable;
+use function sprintf;
 
 final readonly class Action implements EvaluableInterface, Stringable
 {
     use NodesToStringTrait;
 
     /**
-     * @var array<mixed>
-     */
-    public array $nodes;
-
-    /**
      * @param ActionTypeEnum $type
-     * @param mixed ...$nodes
+     * @param PathNode $target
+     * @param mixed $argument
      */
-    public function __construct(public ActionTypeEnum $type, mixed ...$nodes)
-    {
-        $this->nodes = $nodes;
+    private function __construct(
+        public ActionTypeEnum $type,
+        private PathNode $target,
+        private mixed $argument = null,
+    ) {
     }
 
     /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
+     * @param PathNode $target
+     * @param mixed $value
+     * @return Action
      */
-    public function evaluate(EvaluatorInterface $evaluator): string
+    public static function set(PathNode $target, mixed $value): self
     {
-        return $evaluator->evaluateAction($this);
+        return new self(ActionTypeEnum::set, $target, $value);
     }
 
     /**
-     * @inheritDoc
+     * @param PathNode $target
+     * @param mixed $value
+     * @return Action
      */
-    public function convertToString(array $convertedNodes): string
+    public static function add(PathNode $target, mixed $value): self
+    {
+        return new self(ActionTypeEnum::add, $target, $value);
+    }
+
+    /**
+     * @param PathNode $target
+     * @param mixed $value
+     * @return Action
+     */
+    public static function delete(PathNode $target, mixed $value): self
+    {
+        return new self(ActionTypeEnum::delete, $target, $value);
+    }
+
+    /**
+     * @param PathNode $target
+     * @return Action
+     */
+    public static function remove(PathNode $target): self
+    {
+        return new self(ActionTypeEnum::remove, $target);
+    }
+
+    /**
+     * @return PathNode
+     */
+    public function target(): PathNode
+    {
+        return $this->target;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function argument(): mixed
+    {
+        return $this->argument;
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    protected function operands(): array
+    {
+        return $this->type === ActionTypeEnum::remove
+            ? [$this->target]
+            : [$this->target, $this->argument];
+    }
+
+    /**
+     * @param array<int|string, string> $convertedNodes
+     */
+    protected function format(array $convertedNodes): string
     {
         return sprintf($this->type->fmtString(), ...$convertedNodes);
     }

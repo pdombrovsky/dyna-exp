@@ -2,26 +2,29 @@
 
 namespace DynaExp\Builders;
 
-use DynaExp\Context\ExpressionContext;
 use DynaExp\Enums\ExpressionTypeEnum;
-use DynaExp\Evaluation\EvaluatorFactory;
-use DynaExp\Evaluation\EvaluatorFactoryInterface;
+use DynaExp\Evaluation\Evaluator;
+use DynaExp\Evaluation\ExpressionPreprocessorInterface;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Update;
+use DynaExp\Result\ExpressionResult;
 
 final class ExpressionBuilder
 {
     /**
      * @var array<string, null|EvaluableInterface>
      */
-    private array $evaluables;
+    private array $nodes;
 
-    public function __construct()
+    /**
+     * @param ?ExpressionPreprocessorInterface $preprocessor Optional advanced hook for local node rewrites before evaluation.
+     */
+    public function __construct(private readonly ?ExpressionPreprocessorInterface $preprocessor = null)
     {
-        $this->evaluables = [];
+        $this->nodes = [];
     }
 
     /**
@@ -30,7 +33,7 @@ final class ExpressionBuilder
      */
     public function setCondition(?Condition $condition): ExpressionBuilder
     {
-        $this->evaluables[ExpressionTypeEnum::condition->name] = $condition;
+        $this->nodes[ExpressionTypeEnum::condition->name] = $condition;
 
         return $this;
     }
@@ -41,7 +44,7 @@ final class ExpressionBuilder
      */
     public function setFilter(?Condition $condition): ExpressionBuilder
     {
-        $this->evaluables[ExpressionTypeEnum::filter->name] = $condition;
+        $this->nodes[ExpressionTypeEnum::filter->name] = $condition;
 
         return $this;
     }
@@ -52,7 +55,7 @@ final class ExpressionBuilder
      */
     public function setProjection(?Projection $projection): ExpressionBuilder
     {
-        $this->evaluables[ExpressionTypeEnum::projection->name] = $projection;
+        $this->nodes[ExpressionTypeEnum::projection->name] = $projection;
 
         return $this;
     }
@@ -63,7 +66,7 @@ final class ExpressionBuilder
      */
     public function setKeyCondition(?KeyCondition $keyCondition): ExpressionBuilder
     {
-        $this->evaluables[ExpressionTypeEnum::keyCondition->name] = $keyCondition;
+        $this->nodes[ExpressionTypeEnum::keyCondition->name] = $keyCondition;
 
         return $this;
     }
@@ -74,26 +77,28 @@ final class ExpressionBuilder
      */
     public function setUpdate(?Update $update): ExpressionBuilder
     {
-        $this->evaluables[ExpressionTypeEnum::update->name] = $update;
+        $this->nodes[ExpressionTypeEnum::update->name] = $update;
 
         return $this;
     }
 
     /**
-     * @param EvaluatorFactoryInterface $factory
-     * @return ExpressionContext
+     * Builds final expression result with rendered strings and alias maps.
+     * A fresh evaluator instance is created for every build invocation.
+     *
+     * @return ExpressionResult
      */
-    public function build(EvaluatorFactoryInterface $factory = new EvaluatorFactory()): ExpressionContext
+    public function build(): ExpressionResult
     {
-        $evaluator = $factory->make();
+        $evaluator = new Evaluator($this->preprocessor);
 
         $components = [];
 
         foreach (ExpressionTypeEnum::cases() as $expressionType) {
 
-            $evaluable = $this->evaluables[$expressionType->name] ?? null;
+            $node = $this->nodes[$expressionType->name] ?? null;
 
-            $evaluated = $evaluable?->evaluate($evaluator);
+            $evaluated = $node !== null ? $evaluator->evaluate($node) : null;
 
             if ($evaluated) {
 
@@ -111,6 +116,6 @@ final class ExpressionBuilder
             $components[ExpressionTypeEnum::values->value] = $expressionAttributeValues;
         }
      
-        return new ExpressionContext($components);
+        return new ExpressionResult($components);
     }
 }

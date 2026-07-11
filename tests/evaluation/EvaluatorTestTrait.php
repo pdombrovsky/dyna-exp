@@ -7,13 +7,13 @@ use DynaExp\Nodes\EvaluableInterface;
 
 trait EvaluatorTestTrait
 {
-    protected function testEvaluate(EvaluableInterface $evaluable, string $evaluated, array $aliasNames, array $aliasValues)
+    protected function testEvaluate(EvaluableInterface $node, string $evaluated, array $aliasNames, array $aliasValues)
     {
         $evaluator = new Evaluator();
 
         $this->assertSame(
             $evaluated,
-            $evaluable->evaluate($evaluator)
+            $evaluator->evaluate($node)
         );
 
         $this->assertSame(
