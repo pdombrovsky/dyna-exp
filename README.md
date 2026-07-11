@@ -1,4 +1,4 @@
-﻿# DynaExp
+# DynaExp
 
 Build DynamoDB expressions (ConditionExpression, FilterExpression, KeyConditionExpression, UpdateExpression, ProjectionExpression) with a small set of typed helpers. DynaExp keeps the verbose string juggling out of your application code while staying close to native DynamoDB semantics.
 
