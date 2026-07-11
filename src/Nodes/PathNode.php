@@ -327,7 +327,7 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
      * - PathNode when the relative path is not empty.
      * 
      * @param PathNode $child
-     * @return bool|PathNode|null
+     * @return false|PathNode|null
      */
     public function relativePathOf(self $child): false|null|self
     {

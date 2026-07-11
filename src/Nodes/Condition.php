@@ -104,7 +104,7 @@ final readonly class Condition implements EvaluableInterface, Stringable
     /**
      * @param EvaluableInterface $left
      * @param mixed $value
-     * @param mixed[] $rest
+     * @param mixed ...$rest
      * @return Condition
      */
     public static function in(EvaluableInterface $left, mixed $value, mixed ...$rest): self
