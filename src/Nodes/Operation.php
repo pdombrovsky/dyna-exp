@@ -3,41 +3,99 @@
 namespace DynaExp\Nodes;
 
 use DynaExp\Enums\OperationTypeEnum;
-use DynaExp\Evaluation\EvaluatorInterface;
 use DynaExp\Nodes\Traits\NodesToStringTrait;
 use Stringable;
+use function sprintf;
 
 final readonly class Operation implements EvaluableInterface, Stringable
 {
     use NodesToStringTrait;
 
-    /**
-     * @var array<EvaluableInterface|mixed>
-     */
-    public array $nodes;
-
-    /**
-     * @param OperationTypeEnum $type
-     * @param mixed ...$nodes
-     */
-    public function __construct(public OperationTypeEnum $type, mixed ...$nodes)
-    { 
-        $this->nodes = $nodes;
+    private function __construct(
+        public OperationTypeEnum $type,
+        private EvaluableInterface $firstOperand,
+        private mixed $secondOperand,
+    ) {
     }
 
     /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
+     * @param EvaluableInterface $left
+     * @param mixed $right
+     * @return Operation
      */
-    public function evaluate(EvaluatorInterface $evaluator): string
+    public static function plus(EvaluableInterface $left, mixed $right): self
     {
-        return $evaluator->evaluateOperation($this);
+        return new self(OperationTypeEnum::plusValue, $left, $right);
     }
 
     /**
-     * @inheritDoc
+     * @param EvaluableInterface $left
+     * @param mixed $right
+     * @return Operation
      */
-    public function convertToString(array $convertedNodes): string
+    public static function minus(EvaluableInterface $left, mixed $right): self
+    {
+        return new self(OperationTypeEnum::minusValue, $left, $right);
+    }
+
+    /**
+     * @param EvaluableInterface $left
+     * @param mixed $right
+     * @return Operation
+     */
+    public static function listAppend(EvaluableInterface $left, mixed $right): self
+    {
+        return new self(OperationTypeEnum::listAppend, $left, $right);
+    }
+
+    /**
+     * @param EvaluableInterface $left
+     * @param mixed $right
+     * @return Operation
+     */
+    public static function listPrepend(EvaluableInterface $left, mixed $right): self
+    {
+        return new self(OperationTypeEnum::listPrepend, $left, $right);
+    }
+
+    /**
+     * @param PathNode $path
+     * @param mixed $fallback
+     * @return Operation
+     */
+    public static function ifNotExists(PathNode $path, mixed $fallback): self
+    {
+        return new self(OperationTypeEnum::ifNotExists, $path, $fallback);
+    }
+
+    /**
+     * @return EvaluableInterface
+     */
+    public function firstOperand(): EvaluableInterface
+    {
+        return $this->firstOperand;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function secondOperand(): mixed
+    {
+        return $this->secondOperand;
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    protected function operands(): array
+    {
+        return [$this->firstOperand, $this->secondOperand];
+    }
+
+    /**
+     * @param array<int|string, string> $convertedNodes
+     */
+    protected function format(array $convertedNodes): string
     {
         if (OperationTypeEnum::listPrepend == $this->type) {
 

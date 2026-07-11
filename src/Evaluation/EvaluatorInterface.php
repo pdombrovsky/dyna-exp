@@ -2,79 +2,22 @@
 
 namespace DynaExp\Evaluation;
 
-use DynaExp\Nodes\PathNode;
-use DynaExp\Nodes\ActionsSequence;
-use DynaExp\Nodes\Condition;
-use DynaExp\Nodes\KeyCondition;
-use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\Projection;
-use DynaExp\Nodes\Size;
-use DynaExp\Nodes\Action;
-use DynaExp\Nodes\Update;
+use DynaExp\Nodes\EvaluableInterface;
 
 interface EvaluatorInterface
 {
     /**
-     * @param PathNode $path
-     * @return string
+     * Evaluates an expression node in the current aliasing context.
      */
-    function evaluatePath(PathNode $path): string;
+    public function evaluate(EvaluableInterface $node): string;
 
     /**
-     * @param Size $size
-     * @return string
+     * Allocates an attribute-name alias.
      */
-    function evaluateSize(Size $size): string;
+    public function aliasName(string $name): string;
 
     /**
-     * @param ActionsSequence $sequence
-     * @return string
+     * Allocates an attribute-value alias.
      */
-    function evaluateActionsSequence(ActionsSequence $sequence): string;
-
-    /**
-     * @param Condition $conditionNode
-     * @return string
-     */
-    function evaluateCondition(Condition $conditionNode): string;
-
-    /**
-     * @param KeyCondition $keyConditionNode
-     * @return string
-     */
-    function evaluateKeyCondition(KeyCondition $keyConditionNode): string;
-
-    /**
-     * @param Operation $operation
-     * @return string
-     */
-    function evaluateOperation(Operation $operation): string;
-
-    /**
-     * @param Action $actionNode
-     * @return string
-     */
-    function evaluateAction(Action $actionNode): string;
-
-    /**
-     * @param Projection $projectionNode
-     * @return string
-     */
-    function evaluateProjection(Projection $projectionNode): string;
-
-    /**
-     * @param Update $updateNode
-     * @return string
-     */
-    function evaluateUpdate(Update $updateNode): string;
-
-    /**
-     * @return array<string,string>
-     */
-    function getAttributeNameAliases(): array;
-
-    /**
-     * @return array<string,mixed>
-     */
-    function getAttributeValueAliases(): array;
+    public function aliasValue(mixed $value): string;
 }

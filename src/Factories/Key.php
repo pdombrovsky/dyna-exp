@@ -3,7 +3,6 @@
 namespace DynaExp\Factories;
 
 use DynaExp\Builders\ProjectableInterface;
-use DynaExp\Enums\KeyConditionTypeEnum;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\PathNode;
 use DynaExp\Exceptions\InvalidArgumentException;
@@ -31,7 +30,7 @@ final class Key implements ProjectableInterface
      */
     public function equal(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::equalKeyCond, $this->pathNode, $value);
+        return KeyCondition::equal($this->pathNode, $value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class Key implements ProjectableInterface
      */
     public function lessThan(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::lessThanKeyCond, $this->pathNode, $value);
+        return KeyCondition::lessThan($this->pathNode, $value);
     }
 
     /**
@@ -49,7 +48,7 @@ final class Key implements ProjectableInterface
      */
     public function lessThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::lessThanEqualKeyCond, $this->pathNode, $value);
+        return KeyCondition::lessThanEqual($this->pathNode, $value);
     }
 
     /**
@@ -58,7 +57,7 @@ final class Key implements ProjectableInterface
      */
     public function greaterThan(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::greaterThanKeyCond, $this->pathNode, $value);
+        return KeyCondition::greaterThan($this->pathNode, $value);
     }
 
     /**
@@ -67,7 +66,7 @@ final class Key implements ProjectableInterface
      */
     public function greaterThanEqual(mixed $value): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::greaterThanEqualKeyCond, $this->pathNode, $value);
+        return KeyCondition::greaterThanEqual($this->pathNode, $value);
     }
 
     /**
@@ -76,7 +75,7 @@ final class Key implements ProjectableInterface
      */
     public function beginsWith(mixed $prefix): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::beginsWithKeyCond, $this->pathNode, $prefix);
+        return KeyCondition::beginsWith($this->pathNode, $prefix);
     }
 
     /**
@@ -86,7 +85,7 @@ final class Key implements ProjectableInterface
      */
     public function between(mixed $lower, mixed $upper): KeyCondition
     {
-        return new KeyCondition(KeyConditionTypeEnum::betweenKeyCond, $this->pathNode, $lower, $upper);
+        return KeyCondition::between($this->pathNode, $lower, $upper);
     }
 
     /**
@@ -99,6 +98,6 @@ final class Key implements ProjectableInterface
             throw new InvalidArgumentException("Key attribute name cannot be empty");
         }
 
-        return new self(new PathNode([$attribute]));
+        return new self(PathNode::create($attribute));
     }
 }

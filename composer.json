@@ -7,7 +7,7 @@
         "aws",
         "expression",
         "builder",
-        "query",
+        "condition-expression",
         "update"
     ],
     "homepage": "https://github.com/pdombrovsky/dyna-exp",
@@ -24,7 +24,9 @@
         }
     },
     "require": {
-        "php": ">=8.2.0"
+        "php": ">=8.2.0",
+        "ext-ctype": "*",
+        "ext-json": "*"
     },
     "autoload-dev": {
         "psr-4": {

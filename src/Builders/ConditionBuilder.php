@@ -5,6 +5,8 @@ namespace DynaExp\Builders;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Exceptions\RuntimeException;
 use DynaExp\Nodes\Condition;
+use function array_shift;
+use function count;
 
 final class ConditionBuilder
 {
@@ -23,7 +25,7 @@ final class ConditionBuilder
     public function __construct(null|Condition|self $condition = null)
     {
         $this->current = $condition instanceof self
-            ? static::parenthesizeInnerCondition($condition->build())
+            ? Condition::parenthesized($condition->build())
             : $condition;
     }
     
@@ -111,7 +113,7 @@ final class ConditionBuilder
             $condition = array_shift($conditions);
 
             if ($condition instanceof ConditionBuilder) {
-                $condition = static::parenthesizeInnerCondition($condition->build());
+                $condition = Condition::parenthesized($condition->build());
             }
 
             $this->current = $condition;
@@ -119,23 +121,13 @@ final class ConditionBuilder
 
         foreach ($conditions as $condition) {
             if ($condition instanceof ConditionBuilder) {
-                $condition = static::parenthesizeInnerCondition($condition->build());
+                $condition = Condition::parenthesized($condition->build());
             }
 
-            $this->current = new Condition($glue, $this->current, $condition);
+            $this->current = $glue === ConditionTypeEnum::andCond
+                ? Condition::and($this->current, $condition)
+                : Condition::or($this->current, $condition);
         }
-    }
-
-    /**
-     * Wraps the given condition in parentheses by creating a new Condition
-     * with the type `parenthesesCond` and a single operand.
-     *
-     * @param Condition $innerCondition The condition to be wrapped in parentheses.
-     * @return Condition A new Condition object that encloses $innerCondition in parentheses.
-     */
-    private static function parenthesizeInnerCondition(Condition $innerCondition): Condition
-    {
-        return new Condition(ConditionTypeEnum::parenthesesCond, $innerCondition);
     }
 
     /**

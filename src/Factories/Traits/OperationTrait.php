@@ -2,10 +2,9 @@
 
 namespace DynaExp\Factories\Traits;
 
-use DynaExp\Factories\Abstracts\AbstractNode;
+use DynaExp\Factories\ExpressionOperandInterface;
 use DynaExp\Factories\IfNotExists;
 use DynaExp\Factories\Path;
-use DynaExp\Enums\OperationTypeEnum;
 use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\Operation;
 
@@ -19,10 +18,9 @@ trait OperationTrait
      */
     public function plus(mixed $value): Operation
     {
-        return new Operation(
-            OperationTypeEnum::plusValue,
+        return Operation::plus(
             $this->pathNode,
-            $value instanceof AbstractNode ? $value->getNode() : $value
+            $value instanceof ExpressionOperandInterface ? $value->toNode() : $value
         );
     }
 
@@ -34,10 +32,9 @@ trait OperationTrait
      */
     public function minus(mixed $value): Operation
     {
-        return new Operation(
-            OperationTypeEnum::minusValue,
+        return Operation::minus(
             $this->pathNode,
-            $value instanceof AbstractNode ? $value->getNode() : $value
+            $value instanceof ExpressionOperandInterface ? $value->toNode() : $value
         );
     }
 
@@ -49,10 +46,9 @@ trait OperationTrait
      */
     public function listAppend(mixed $values): Operation
     {
-        return new Operation(
-            OperationTypeEnum::listAppend,
+        return Operation::listAppend(
             $this->pathNode,
-            $values instanceof AbstractNode ? $values->getNode() : $values
+            $values instanceof ExpressionOperandInterface ? $values->toNode() : $values
         );
     }
 
@@ -64,17 +60,16 @@ trait OperationTrait
      */
     public function listPrepend(mixed $values): Operation
     {
-        return new Operation(
-            OperationTypeEnum::listPrepend,
+        return Operation::listPrepend(
             $this->pathNode,
-            $values instanceof AbstractNode ? $values->getNode() : $values
+            $values instanceof ExpressionOperandInterface ? $values->toNode() : $values
         );
     }
 
     /**
      * @inheritDoc
      */
-    protected function getNode(): EvaluableInterface
+    public function toNode(): EvaluableInterface
     {
         return $this->pathNode;
     }

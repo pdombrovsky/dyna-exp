@@ -16,11 +16,11 @@ composer require pdombrovsky/dyna-exp:^1.0@alpha
 
 ## Overview
 
-- **Nodes** – small immutable objects such as `Condition`, `Operation`, `Projection`, `Update`, or `PathNode`. They hold the typed data that eventually becomes part of an expression string and remember everything they need (segments, traversal helpers, aliases, etc.).
+- **Nodes** – small immutable objects such as `Condition`, `Operation`, `Projection`, `Update`, or `PathNode`. They hold typed expression data and evaluate themselves through the internal evaluator contract.
 - **Factories** – ergonomic wrappers (`Path`, `Key`, `Size`, `IfNotExists`, …) that expose DynamoDB-oriented helpers. One `Path` instance can create conditions, updates, projections, search expressions, and aliases without re-parsing strings.
 - **Builders** – fluent APIs for assembling nodes (`ConditionBuilder`, `KeyConditionBuilder`, `ProjectionBuilder`, `UpdateBuilder`, `ExpressionBuilder`).
-- **Evaluator** – turns nodes into DynamoDB strings, allocates deterministic `ExpressionAttributeNames`/`ExpressionAttributeValues`, and keeps alias usage consistent even when nodes are reused.
-- **ExpressionContext** – a read-only result object with a convenient `toArray()` method (plus optional value transforms). You stay in control of marshalling to DynamoDB types, so the library works with any SDK or transport layer.
+- **Evaluator** – turns nodes into DynamoDB strings, allocates deterministic `ExpressionAttributeNames`/`ExpressionAttributeValues`, keeps alias usage consistent even when nodes are reused, and can optionally normalize nodes through a preprocessor before rendering.
+- **ExpressionResult** – a read-only result object with a simple `toArray()` export. You stay in control of marshalling to DynamoDB types, so the library works with any SDK or transport layer.
 
 ## Quick Start
 
@@ -29,7 +29,6 @@ use DynaExp\Factories\Path;
 use DynaExp\Factories\Key;
 use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
-use DynaExp\Evaluation\EvaluatorFactory;
 
 $price = Path::create('price');
 $stock = Path::create('inventory', 'total');
@@ -44,7 +43,7 @@ $expr = (new ExpressionBuilder())
     ->setKeyCondition(
         Key::create('pk')->equal('PRODUCT#123')
     )
-    ->build(new EvaluatorFactory())
+    ->build()
     ->toArray();
 
 // [
@@ -57,11 +56,22 @@ $expr = (new ExpressionBuilder())
 
 The builders never mutate state after build time, so the same nodes can be reused in different expressions.
 
+### Evaluation Pipeline
+
+- Each node exposes `evaluate(EvaluatorInterface $evaluator)`.
+- `Evaluator` implements that internal evaluator contract, recursively evaluates nested nodes, and centralizes name/value alias allocation.
+- `ExpressionBuilder` can receive an optional `ExpressionPreprocessorInterface` and creates a fresh `Evaluator` for every `build()` call.
+- If you need domain-specific rewrites before rendering, see `Advanced Customization` below.
+
+### Validation Scope
+
+DynaExp validates local expression-builder invariants: path syntax, path segments, empty builders, and collection node shape. It does not validate your table schema, request shape, key role semantics, or every DynamoDB grammar rule. For example, the package does not know which attributes are partition or sort keys, whether an `ADD` action targets a valid DynamoDB type, or whether a final set of expressions is valid for a specific DynamoDB operation.
+
 # Factories
 
 ## Path
 
-`Path` is the main building block for attribute access in filters, projections, key conditions, and updates. Under the hood it wraps an immutable `PathNode`, validates every segment, and keeps DynamoDB-specific metadata such as deterministic string representations, `searchExpression()` output, and alias-friendly evaluation.  
+`Path` is the main building block for attribute access in filters, projections, key conditions, and updates. Under the hood it wraps an immutable `PathNode`, validates every segment, and keeps DynamoDB-specific metadata such as deterministic string representations, `searchExpression()` output, and stable aliased evaluation output.  
 
 A single `Path` object can be reused across the whole expression: the helper methods mixed in from `ConditionTrait` and `OperationTrait` let you create equality/range/containment checks, attribute existence/type predicates, arithmetic updates, list append/prepend operations, `if_not_exists`, `size()`, and more – all off the same root path.
 
@@ -80,9 +90,14 @@ $p2 = Path::fromString('map."a.b"[3].c');       // map.a.b[3].c
 $p2->searchExpression();        // "map"."a.b"[3]."c"
 $p2->searchExpression(true);    // "map"."a.b"[0]."c"
 
+// JMESPath for marshaled DynamoDB AttributeValue item data.
+// The expression is relative to the item object; add Item. or Items[0]. outside if needed.
+$p2->marshaledSearchExpression();                          // "map".M."a.b".L[3].M."c"
+$p2->marshaledSearchExpression(true);                      // "map".M."a.b".L[0].M."c"
+
 // Evaluation output with aliases
 $evaluator = new Evaluator();
-$exprPath = $p2->project()->evaluate($evaluator);   // "#0.#1[3].#2"
+$exprPath = $evaluator->evaluate($p2->project());   // "#0.#1[3].#2"
 $namesMap = $evaluator->getAttributeNameAliases();  // ['#0' => 'map', '#1' => 'a.b', '#2' => 'c']
 
 // Parent/child helpers
@@ -93,6 +108,8 @@ $p3Child  = $p3->child('leaf');        // root.child.leaf
 // Check ancestry
 $nested = $p3->child('leaf', 'branch');
 $p3->isParentOf($nested); // true
+$p3->project()->relativePathOf($nested->project()); // PathNode for 'leaf.branch'
+count($nested->project()); // 4
 
 $counter = Path::create('stats', 'counter');
 
@@ -104,23 +121,31 @@ $increment = $counter->set($counter->ifNotExists(0)->plus(1));    // Semantics: 
 Notes:
 - Capabilities:
   - `project()` exposes the underlying PathNode for projection builders or manual evaluation.
-  - `searchExpression($resetIndexes = false)` formats a deterministic, JMESPath-compatible string.
-  - `parent()`, `child(...)`, `isParentOf(...)`, and `lastSegment()` let you navigate the path tree safely.
+  - `searchExpression($resetIndexes = false)` formats a deterministic, JMESPath-compatible string for native/unmarshaled item data. Attribute segments are emitted as quoted identifiers with JSON string escaping.
+  - `marshaledSearchExpression($resetIndexes = false)` formats a JMESPath-compatible string for marshaled DynamoDB AttributeValue item data and points to the target AttributeValue wrapper.
+  - `parent()`, `child(...)`, `isParentOf(...)`, `lastSegment()`, `PathNode::relativePathOf(...)`, and `Countable` support safe path-tree navigation.
+  - Condition helpers include equality/range checks, `between()`, `in()`, `beginsWith()`, `contains()`, `attributeExists()`, and `attributeType()`.
+  - Negative condition helpers include `notEqual()`, `notBetween()`, `notIn()`, `notBeginsWith()`, `notContains()`, `attributeNotExists()`, and `attributeTypeNot()`.
 - Parser rules (Path::fromString):
   - Dots split attribute segments: `map.nested.attr`
   - Brackets denote list indexes: `list[0][10]`
   - Double quotes wrap a segment to allow dots: `attr1."some.nested.attribute".attr2`
-  - Inside quotes only `\"` escapes a quote; backslash is otherwise literal
+  - Inside quotes, JSON string escapes are supported: use `\"` for a literal quote, `\\` for a literal backslash, and escapes such as `\n`, `\t`, `\/`, or `\uXXXX` when needed
   - Quotes are not allowed inside brackets
 - Limitations:
-  - Negative indexes and empty segments are rejected at construction time (string parser or programmatic API).
-  - Quoted segments support only `\"` escaping; other escape sequences are treated literally.
+  - Negative indexes, leading-zero indexes except `[0]`, indexes larger than `PHP_INT_MAX`, and empty segments are rejected at construction time (string parser or programmatic API).
+  - Invalid JSON escape sequences in quoted segments are rejected.
   - Path does not marshal attribute values; combine evaluated expressions with your own DynamoDB encoder.
+- Values vs expression operands:
+  - Plain values are stored in `ExpressionAttributeValues`.
+  - Objects passed as values are treated as opaque user payloads. For example, `Path::create('a')->equal(Path::create('b'))` stores the right-side `Path` object as `:0`.
+  - To use another path as an expression operand, pass the underlying node explicitly: `Path::create('a')->equal(Path::create('b')->project())` renders as `#0 = #1`.
 
 ## Key
 
 Description:
-- Factory to build key conditions (hash/range) for queries. Use with KeyConditionBuilder to combine.
+- Factory to build key condition expression fragments. Use with KeyConditionBuilder to combine.
+- DynaExp does not know your table schema and does not validate which attribute is the partition or sort key.
 
 Examples:
 ```php
@@ -145,6 +170,7 @@ Description:
 
 Examples:
 ```php
+use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Factories\Path;
 
 $sizeCond = Path::create('a')->size()->greaterThan(0);  // size(a) > :0
@@ -200,7 +226,6 @@ Examples:
 use DynaExp\Factories\Path;
 use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
-use DynaExp\Evaluation\EvaluatorFactory;
 
 $a = Path::create('a');
 $b = Path::create('b');
@@ -218,7 +243,7 @@ $nested = (new ConditionBuilder($a->attributeExists()))
 // Evaluate to see final strings/aliases
 $ctx = (new ExpressionBuilder())
     ->setFilter($nested)
-    ->build(new EvaluatorFactory())
+    ->build()
     ->toArray();
 
 // $ctx === [
@@ -230,6 +255,7 @@ $ctx = (new ExpressionBuilder())
 
 Notes:
 - If no initial condition is set, `.and()`/`.or()` require at least two arguments.
+- Passing another `ConditionBuilder` into `.and()`/`.or()` wraps that nested builder in parentheses.
 
 ## KeyConditionBuilder
 
@@ -250,26 +276,31 @@ $keyCond = (new KeyConditionBuilder($left))
 ```
 
 Notes:
-- A `AND` key condition should not be nested again as `AND` (guarded by the builder).
+- An `AND` key condition should not be nested again as `AND` (guarded by the builder).
+- `.and()` can be called only once; a second call throws.
+- The builder validates only this local shape. It does not validate table schema, partition key role, or sort key role.
 
 ## ProjectionBuilder
 
 Description:
-- Aggregates projected attributes (paths) into a `Projection` node.
+- Aggregates projected attributes into a `Projection` node. Inputs must implement `ProjectableInterface`, so both `Path` and `Key` can be projected.
 
 Examples:
 ```php
 use DynaExp\Builders\ProjectionBuilder;
+use DynaExp\Factories\Key;
 use DynaExp\Factories\Path;
 
 $projection = (new ProjectionBuilder(
     Path::create('a'),
-    Path::create('b')
+    Path::create('b'),
+    Key::create('pk')
 ))->build();
 ```
 
 Notes:
 - Projection evaluates to a comma-separated list with aliased names.
+- Building an empty projection throws `DynaExp\Exceptions\RuntimeException`.
 
 ## UpdateBuilder
 
@@ -279,30 +310,29 @@ Description:
 Examples:
 ```php
 use DynaExp\Builders\UpdateBuilder;
-  use DynaExp\Factories\Path;
-  use DynaExp\Builders\ExpressionBuilder;
-  use DynaExp\Evaluation\EvaluatorFactory;
-  
-  $counter = Path::create('counter');
-  $deprecatedFlag = Path::create('flags', 'deprecated');
-  
-  $update = (new UpdateBuilder())
-      ->add(
-          $counter->set(1),            // SET counter = :0
-          $deprecatedFlag->remove()    // REMOVE flags.deprecated
-      )
-      ->build();
-  
-  $ctx = (new ExpressionBuilder())
-      ->setUpdate($update)
-      ->build(new EvaluatorFactory())
-      ->toArray();
-  
-  // Example output:
-  // $ctx['UpdateExpression'] === 'SET #0 = :0 REMOVE #1.#2'
-  // $ctx['ExpressionAttributeNames'] === ['#0' => 'counter', '#1' => 'flags', '#2' => 'deprecated']
-  // $ctx['ExpressionAttributeValues'] === [':0' => 1]
-  ```
+use DynaExp\Factories\Path;
+use DynaExp\Builders\ExpressionBuilder;
+
+$counter = Path::create('counter');
+$deprecatedFlag = Path::create('flags', 'deprecated');
+
+$update = (new UpdateBuilder())
+    ->add(
+        $counter->set(1),            // SET counter = :0
+        $deprecatedFlag->remove()    // REMOVE flags.deprecated
+    )
+    ->build();
+
+$ctx = (new ExpressionBuilder())
+    ->setUpdate($update)
+    ->build()
+    ->toArray();
+
+// Example output:
+// $ctx['UpdateExpression'] === 'SET #0 = :0 REMOVE #1.#2'
+// $ctx['ExpressionAttributeNames'] === ['#0' => 'counter', '#1' => 'flags', '#2' => 'deprecated']
+// $ctx['ExpressionAttributeValues'] === [':0' => 1]
+```
 
 ### Nested operations for SET
 
@@ -310,7 +340,6 @@ use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Factories\Path;
 use DynaExp\Builders\ExpressionBuilder;
-use DynaExp\Evaluation\EvaluatorFactory;
 
 $listAttr = Path::create('listAttr');
 $counter  = Path::create('counter');
@@ -329,7 +358,7 @@ $update = (new UpdateBuilder())
 
 $ctx = (new ExpressionBuilder())
     ->setUpdate($update)
-    ->build(new EvaluatorFactory())
+    ->build()
     ->toArray();
 
 // Example output:
@@ -341,6 +370,8 @@ $ctx = (new ExpressionBuilder())
 Notes:
 - DynamoDB evaluates update expression sections internally in the order **REMOVE → SET → ADD → DELETE**. The service accepts any section order in your request payload and normalizes it when processing.
 - `listPrepend()` is a convenience helper: DynamoDB supports only `list_append(left, right)`. Implementing a prepend behaviour strictly would require introducing dedicated wrapper objects for values so callers could control argument order, which would make the public API more awkward to use; instead the helper simply swaps the arguments to preserve the mental model (`list_prepend(target, payload)` → `list_append(payload, target)`).
+- Building an empty update throws `DynaExp\Exceptions\RuntimeException`.
+- Update action sections are grouped by action type and rendered once per type.
 
 ### Complex nested update
 
@@ -370,7 +401,7 @@ $update = (new UpdateBuilder())
 
 $ctx = (new ExpressionBuilder())
     ->setUpdate($update)
-    ->build(new EvaluatorFactory())
+    ->build()
     ->toArray();
 
 // SET #0[0].#1 = if_not_exists(#0[0].#1, :0) + if_not_exists(#0[0].#2, :1),
@@ -382,7 +413,7 @@ $ctx = (new ExpressionBuilder())
 ## ExpressionBuilder
 
 Description:
-- Gathers optional parts (filter/condition/key condition/update/projection), evaluates through an Evaluator, and returns ExpressionContext.
+- Gathers optional parts (filter/condition/key condition/update/projection), evaluates them through an Evaluator, and returns `ExpressionResult`.
 
 Examples:
 ```php
@@ -390,7 +421,7 @@ use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
-use DynaExp\Evaluation\EvaluatorFactory;
+use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Factories\Key;
 use DynaExp\Factories\Path;
 
@@ -416,21 +447,98 @@ $expr = (new ExpressionBuilder())
     ->setProjection($projection)
     ->setKeyCondition($keyCondition)
     ->setUpdate($update)
-    ->build(new EvaluatorFactory());
+    ->build();
 
 $array = $expr->toArray();
 // Keys reflect DynamoDB API: ProjectionExpression, FilterExpression, UpdateExpression,
 // KeyConditionExpression (if any), plus ExpressionAttributeNames/ExpressionAttributeValues when needed.
 
-// Optional value transformation
-$array = $expr->toArray(function (array $values) {
-    // Convert your domain/custom types to wire format here
-    return $values;
-});
+$expr->has(ExpressionTypeEnum::filter); // true
 ```
 
 Notes:
 - Empty parts are omitted from the output map.
+- `ExpressionResult::has(ExpressionTypeEnum $type)` checks whether a result component exists.
+- If you need custom normalization before rendering, pass an `ExpressionPreprocessorInterface` into `ExpressionBuilder`.
+- If you need to marshal `ExpressionAttributeValues` for a specific client, do that after `toArray()` on the returned `ExpressionResult`.
+
+# Advanced Customization
+
+## ExpressionPreprocessorInterface
+
+`ExpressionPreprocessorInterface` is an advanced hook for local node rewrites before rendering.
+
+Use it only when the expression tree is valid as-is, but you still need a small amount of application-specific preprocessing before aliases are allocated and strings are rendered.
+
+Typical cases:
+- normalize one node shape into another for infrastructure constraints
+- inject small compatibility rewrites without changing the public builders
+
+Important rules:
+- transform only the current node
+- return the original node when no rewrite is needed
+- keep the transformation idempotent
+- do not traverse child nodes manually; `Evaluator` already does that during recursive rendering
+
+Prefer the regular builders whenever the expression can already be modeled directly. A preprocessor is an edge-case extension point, not the default way to build expressions.
+
+### Example: rewrite one `IN (...)` condition into smaller chunks
+
+DynamoDB allows at most 100 operands in a single `IN` condition. You can technically rewrite a larger input into multiple `IN (...)` groups joined with `OR`, but this does not remove DynamoDB's overall size limits: each individual expression string is limited to 4 KB, and the total size of expression substitution variables is limited to 2 MB. A preprocessor can help with the `IN <= 100` rule, but it is not a general escape hatch for oversized expressions.
+
+```php
+use DynaExp\Enums\ConditionTypeEnum;
+use DynaExp\Evaluation\ExpressionPreprocessorInterface;
+use DynaExp\Nodes\Condition;
+use DynaExp\Nodes\EvaluableInterface;
+
+final readonly class SplitLargeInPreprocessor implements ExpressionPreprocessorInterface
+{
+    public function __construct(private int $chunkSize = 100)
+    {
+    }
+
+    public function process(EvaluableInterface $node): EvaluableInterface
+    {
+        if (! $node instanceof Condition || $node->type !== ConditionTypeEnum::inCond) {
+            return $node;
+        }
+
+        $path = $node->firstOperand();
+        $values = $node->tailOperands();
+
+        if (count($values) <= $this->chunkSize) {
+            return $node;
+        }
+
+        $chunks = array_chunk($values, $this->chunkSize);
+        $conditions = array_map(
+            fn (array $chunk): Condition => Condition::in($path, ...$chunk),
+            $chunks
+        );
+
+        return array_reduce(
+            array_slice($conditions, 1),
+            fn (Condition $carry, Condition $next): Condition => Condition::or($carry, $next),
+            $conditions[0]
+        );
+    }
+}
+```
+
+This example is intentionally more advanced: it shows that a preprocessor can perform a structural rewrite, not just tweak a scalar value.
+
+Use a preprocessor when:
+- the rewrite must happen before alias allocation
+- the rule is local to one node at a time
+- the existing builders already express the public DSL well enough
+
+Do not use a preprocessor when:
+- you can express the logic with the existing builders directly
+- you only need to post-process the final `ExpressionResult`
+- you want to manually traverse the whole tree
+
+The builder creates a fresh evaluator on every `build()` call, so alias state does not leak between independent compilations.
 
 # Supporting Types
 
@@ -446,7 +554,7 @@ Nodes that implement `Stringable` or contain arrays/objects use a deterministic 
 
 Note: these conversions are intended for debugging, tests and logs only. Do not use them to build wire payloads for DynamoDB; use the evaluator output and, if needed, marshal values with your SDK/adapter.
 
-> ⚠️ Recursive references and cyclic structures are not supported. Attempting to serialize such data will trigger an exception. Ensure arrays and objects form a finite, acyclic graph.
+> ⚠️ Recursive references and cyclic structures are not supported. Debug string conversion may fail or produce unusable output for cyclic graphs. Keep arrays and objects finite and acyclic when relying on `__toString()`.
 
 ### Attribute value aliases
 
@@ -456,7 +564,14 @@ Note: these conversions are intended for debugging, tests and logs only. Do not 
 
 Parser provides specific messages with processed prefix for:
 - Empty attribute name (including trailing dot)
+- Empty index
 - Quoted attribute inside brackets
 - Unmatched quote
+- Invalid JSON escape sequences inside quoted attributes
 - Nested brackets / unmatched bracket
-- Invalid index (non-digit), negative index via programmatic APIs
+- Invalid index (non-digit)
+- Leading-zero indexes except `[0]`
+- Indexes larger than `PHP_INT_MAX`
+- Negative index via programmatic APIs
+- Unsupported segment types via programmatic APIs
+- Invalid UTF-8 string segments via programmatic APIs
