@@ -3,11 +3,8 @@
 namespace DynaExp\Factories;
 
 use DynaExp\Builders\ProjectableInterface;
-use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Enums\AttributeTypeEnum;
-use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Factories\Abstracts\AbstractNode;
 use DynaExp\Factories\IfNotExists;
 use DynaExp\Factories\Size;
 use DynaExp\Factories\Traits\ConditionTrait;
@@ -18,7 +15,7 @@ use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\PathNode;
 use Stringable;
 
-final readonly class Path extends AbstractNode implements Stringable, ProjectableInterface
+final readonly class Path implements Stringable, ProjectableInterface, ExpressionOperandInterface
 {
     use ConditionTrait;
     use OperationTrait;
@@ -31,7 +28,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
     }
 
     /**
-     * @return \DynaExp\Nodes\PathNode
+     * @return PathNode
      */
     public function project(): PathNode
     {
@@ -45,7 +42,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function attributeExists(): Condition
     {
-        return new Condition(ConditionTypeEnum::attrExistsCond, $this->pathNode);
+        return Condition::attributeExists($this->pathNode);
     }
 
     /**
@@ -55,7 +52,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function attributeNotExists(): Condition
     {
-        return new Condition(ConditionTypeEnum::attrNotExistsCond, $this->pathNode);
+        return Condition::attributeNotExists($this->pathNode);
     }
 
     /**
@@ -66,7 +63,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function attributeType(AttributeTypeEnum $type): Condition
     {
-        return new Condition(ConditionTypeEnum::attrTypeCond, $this->pathNode, $type->value);
+        return Condition::attributeType($this->pathNode, $type->value);
     }
 
     /**
@@ -77,7 +74,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function attributeTypeNot(AttributeTypeEnum $type): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->attributeType($type));
+        return Condition::not($this->attributeType($type));
     }
 
     /**
@@ -88,7 +85,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function beginsWith(mixed $prefix): Condition
     {
-        return new Condition(ConditionTypeEnum::beginsWithCond, $this->pathNode, $prefix);
+        return Condition::beginsWith($this->pathNode, $prefix);
     }
 
     /**
@@ -99,7 +96,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function notBeginsWith(mixed $prefix): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->beginsWith($prefix));
+        return Condition::not($this->beginsWith($prefix));
     }
 
     /**
@@ -110,7 +107,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function contains(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::containsCond, $this->pathNode, $value);
+        return Condition::contains($this->pathNode, $value);
     }
 
     /**
@@ -121,7 +118,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function notContains(mixed $value): Condition
     {
-        return new Condition(ConditionTypeEnum::notCond, $this->contains($value));
+        return Condition::not($this->contains($value));
     }
 
     /**
@@ -153,7 +150,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function add(mixed $value): Action
     {
-        return new Action(ActionTypeEnum::add, $this->pathNode, $value);
+        return Action::add($this->pathNode, $value);
     }
 
     /**
@@ -164,7 +161,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function delete(mixed $value): Action
     {
-        return new Action(ActionTypeEnum::delete, $this->pathNode, $value);
+        return Action::delete($this->pathNode, $value);
     }
 
     /**
@@ -174,7 +171,7 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function remove(): Action
     {
-        return new Action(ActionTypeEnum::remove, $this->pathNode);
+        return Action::remove($this->pathNode);
     }
 
     /**
@@ -185,12 +182,12 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      */
     public function set(mixed $value): Action
     {
-        if ($value instanceof AbstractNode) {
+        if ($value instanceof ExpressionOperandInterface) {
 
-            $value = $value->getNode();
+            $value = $value->toNode();
         }
 
-        return new Action(ActionTypeEnum::set, $this->pathNode, $value);
+        return Action::set($this->pathNode, $value);
     }
 
     /**
@@ -248,6 +245,24 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
     }
 
     /**
+     * Returns a JMESPath search expression for the path within marshaled
+     * DynamoDB data.
+     *
+     * The expression is relative to the contents of the root container, so its
+     * DynamoDB type is not included. Nested map and list container types are
+     * added before the corresponding path segments.
+     *
+     * When index resetting is enabled, every list index is replaced with zero.
+     *
+     * @param bool $resetIndexes
+     * @return string
+     */
+    public function marshaledSearchExpression(bool $resetIndexes = false): string
+    {
+        return $this->pathNode->marshaledSearchExpression($resetIndexes);
+    }
+
+    /**
      * @inheritDoc
      */
     public function __toString(): string
@@ -258,12 +273,12 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
     /**
      * @param string $attribute
      * @param string|int ...$segments
-     * @throws \DynaExp\Exceptions\InvalidArgumentException
+     * @throws InvalidArgumentException
      * @return Path
      */
     public static function create(string $attribute, string|int ...$segments): self
     {
-        return new Path(PathNode::create($attribute, ...$segments));
+        return new self(PathNode::create($attribute, ...$segments));
     }
 
     /**
@@ -272,161 +287,14 @@ final readonly class Path extends AbstractNode implements Stringable, Projectabl
      * - Brackets ([index]) denote list indexes.
      * - Double quotes (") wrap an attribute name to allow dots inside it, e.g.:
      *   attr1.attr2[3]."some.nested.attribute".attr4
-     *   Inside quotes, use \" to include a double quote character; a backslash is otherwise literal.
+     *   Inside quotes, use \" for a literal quote and \\ for a literal backslash.
      * 
      * @param string $pathString
      * @throws InvalidArgumentException
-     * @throws \DynaExp\Exceptions\RuntimeException
      * @return \DynaExp\Factories\Path
      */
     public static function fromString(string $pathString): Path
     {
-        if ($pathString === '') {
-            throw new InvalidArgumentException("Input string cannot be empty.");
-        }
-
-        $segments = [];
-        $buffer = '';
-        $previousChar = '';
-        $shouldProcessBuffer = false;
-        $bracketLevel = 0;
-        $inQuotes = false;
-        $awaitingAttribute = false;
-        $lastDotIndex = -1;
-
-        $length = strlen($pathString);
-        $i = 0;
-
-        while ($i < $length) {
-
-            $char = $pathString[$i];
-
-            // Handle quoted attribute names
-            if ($inQuotes) {
-                if ($char === '\\') {
-                    $next = $pathString[$i + 1] ?? null;
-                    if ($next === '"') {
-                        // escape sequence for a quote inside quotes: \"
-                        $buffer .= '"';
-                        $previousChar = '"';
-                        $i += 2;
-                        continue;
-                    }
-                    // literal backslash
-                    $buffer .= '\\';
-                    $previousChar = '\\';
-                    $i++;
-                    continue;
-                }
-                if ($char === '"') {
-                    // close quotes, keep buffer until next delimiter
-                    $inQuotes = false;
-                    $previousChar = '"';
-                    $i++;
-                    continue;
-                }
-                $buffer .= $char;
-                $previousChar = $char;
-                $i++;
-                continue;
-            }
-
-            switch ($char) {
-                case '.':
-                    if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Invalid character '.' inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if ($buffer === '' && ! in_array($previousChar, [']', '"'], true)) {
-                        throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $shouldProcessBuffer = false;
-                    $awaitingAttribute = true;
-                    $lastDotIndex = $i;
-                    break;
-                case '"':
-                    if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Quoted attribute name is not allowed inside brackets. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if ($buffer !== '') {
-                        throw new InvalidArgumentException(sprintf("Unexpected '\"' inside attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if (! in_array($previousChar, ['', '.'], true)) {
-                        throw new InvalidArgumentException(sprintf("Quoted attribute must start at beginning or after a dot. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $inQuotes = true;
-                    $shouldProcessBuffer = true;
-                    $awaitingAttribute = false;
-                    break;
-                case '[':
-                    if ($bracketLevel > 0) {
-                        throw new InvalidArgumentException(sprintf("Nested brackets are not allowed. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if (in_array($previousChar, ['', '.'])) {
-                        throw new InvalidArgumentException(sprintf("Index used without a preceding attribute name. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $bracketLevel++;
-                    $shouldProcessBuffer = false;
-                    break;
-                case ']':
-                    if ($bracketLevel === 0) {
-                        throw new InvalidArgumentException(sprintf("Unmatched closing bracket. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if ($buffer === '') {
-                        throw new InvalidArgumentException(sprintf("Empty index found. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-                    if (! ctype_digit($buffer)) {
-                        throw new InvalidArgumentException(sprintf("Only non-negative integers are allowed in index, '$buffer' given. %s", self::processedSymbolsMessage($pathString, $i)));
-                    }
-
-                    $buffer = (int) $buffer;
-
-                    $bracketLevel--;
-                    $shouldProcessBuffer = false;
-                    break;
-                default:
-                    $buffer .= $char;
-                    $shouldProcessBuffer = true;
-                    $awaitingAttribute = false;
-            }
-
-            if (! $shouldProcessBuffer && $buffer !== '') {
-                $segments[] = $buffer;
-                $buffer = '';
-            }
-
-            $previousChar = $char;
-            $i++;
-        }
-
-        if ($awaitingAttribute) {
-            throw new InvalidArgumentException(sprintf("Empty attribute name found. %s", self::processedSymbolsMessage($pathString, $lastDotIndex)));
-        }
-
-        if ($inQuotes) {
-            throw new InvalidArgumentException(sprintf("Unmatched quote. %s", self::processedSymbolsMessage($pathString, $i)));
-        }
-
-        if ($bracketLevel !== 0) {
-            throw new InvalidArgumentException(sprintf("Unmatched opening bracket. %s", self::processedSymbolsMessage($pathString, $i)));
-        }
-
-        if ($buffer) {
-            $segments[] = $buffer;
-        }
-
-        return new Path(new PathNode($segments));
-    }
-
-    /**
-     * @param string $pathString
-     * @param int $index
-     * @return string
-     */
-    private static function processedSymbolsMessage(string $pathString, int $index): string
-    {
-        return sprintf("Processed symbols: '%s'.", substr($pathString, 0, $index));
+        return new self(PathNode::fromString($pathString));
     }
 }

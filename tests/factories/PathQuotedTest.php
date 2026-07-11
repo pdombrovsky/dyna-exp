@@ -16,13 +16,14 @@ final class PathQuotedTest extends TestCase
             ['"a".b', 'a.b'],
             ['a."b.c"[10]."d\"e".f', 'a.b.c[10].d"e.f'],
             ['"root"."child.with.dots"', 'root.child.with.dots'],
-            ['prefix."with\\backslash".suffix', 'prefix.with\\backslash.suffix'],
+            ['prefix."with\\\\backslash".suffix', 'prefix.with\\backslash.suffix'],
             ['testMap."attr\"with\"double\"quotes"[0]', 'testMap.attr"with"double"quotes[0]'],
             ['"a.b"[0].c', 'a.b[0].c'],
             ['list[0]."a.b"', 'list[0].a.b'],
             ['"with space".x', 'with space.x'],
             ['"a/b".c', 'a/b.c'],
             ['"attr"[0]', 'attr[0]'],
+            ['"a.b\\\\".c', 'a.b\\.c'],
         ];
     }
 
@@ -48,7 +49,37 @@ final class PathQuotedTest extends TestCase
             ['"a.b"..c', "Empty attribute name found. Processed symbols: '\"a.b\".'.", InvalidArgumentException::class],
             ['a..\"b\"', "Empty attribute name found. Processed symbols: 'a.'.", InvalidArgumentException::class],
             ['list[0].', "Empty attribute name found. Processed symbols: 'list[0]'.", InvalidArgumentException::class],
+            ['""', "Quoted attribute name cannot be empty. Processed symbols: '\"\"'.", InvalidArgumentException::class],
+            ['a."".c', "Quoted attribute name cannot be empty. Processed symbols: 'a.\"\"'.", InvalidArgumentException::class],
+            ['a.""', "Quoted attribute name cannot be empty. Processed symbols: 'a.\"\"'.", InvalidArgumentException::class],
+            ['""[0]', "Quoted attribute name cannot be empty. Processed symbols: '\"\"'.", InvalidArgumentException::class],
+            ['"a"b', "Attribute name must start at beginning or after a dot. Processed symbols: '\"a\"'.", InvalidArgumentException::class],
         ];
+    }
+
+    public function testQuotedBackslashEscapes(): void
+    {
+        $path = Path::fromString('"a.b\\\\".c');
+
+        $this->assertSame(['a.b\\', 'c'], $path->project()->segments);
+    }
+
+    public function testQuotedSegmentsUseJsonEscapes(): void
+    {
+        $path = Path::fromString('"line\\nbreak"."tab\\tchar"."unicode\\u0041"."slash\\/key"."with\\backslash"');
+
+        $this->assertSame(
+            ["line\nbreak", "tab\tchar", 'unicodeA', 'slash/key', 'with' . chr(8) . 'ackslash'],
+            $path->project()->segments
+        );
+    }
+
+    public function testQuotedInvalidJsonEscapeIsRejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid quoted attribute name.');
+
+        Path::fromString('prefix."with\\xescape".suffix');
     }
 
     #[DataProvider('invalidQuotedPathsProvider')]

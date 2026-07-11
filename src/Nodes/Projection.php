@@ -2,30 +2,49 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Evaluation\EvaluatorInterface;
+use DynaExp\Exceptions\InvalidArgumentException;
+use DynaExp\Nodes\Traits\NodesToStringTrait;
+use Stringable;
+use function get_debug_type;
+use function implode;
+use function sprintf;
 
-final readonly class Projection implements EvaluableInterface
+final readonly class Projection implements EvaluableInterface, Stringable
 {
+    use NodesToStringTrait;
+
     /**
-     * @param EvaluableInterface[] $attributes
+     * @param array<int|string, PathNode> $attributes
      */
     public function __construct(public array $attributes)
-    { 
-    }
-
-    /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
-     */
-    public function evaluate(EvaluatorInterface $evaluator): string
     {
-        return $evaluator->evaluateProjection($this);
+        if ($attributes === []) {
+            throw new InvalidArgumentException('Projection requires at least one attribute.');
+        }
+
+        foreach ($attributes as $attribute) {
+            if (! $attribute instanceof PathNode) {
+                throw new InvalidArgumentException(sprintf(
+                    'Projection attribute must be %s, %s given.',
+                    PathNode::class,
+                    get_debug_type($attribute),
+                ));
+            }
+        }
     }
 
     /**
-     * @inheritDoc
+     * @return array<int|string, PathNode>
      */
-    public function convertToString(array $convertedNodes): string
+    protected function operands(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @param array<int|string, string> $convertedNodes
+     */
+    protected function format(array $convertedNodes): string
     {
         return implode(', ', $convertedNodes);
     }

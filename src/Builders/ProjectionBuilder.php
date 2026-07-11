@@ -2,6 +2,7 @@
 
 namespace DynaExp\Builders;
 
+use DynaExp\Exceptions\RuntimeException;
 use DynaExp\Nodes\PathNode;
 use DynaExp\Nodes\Projection;
 
@@ -44,6 +45,10 @@ final class ProjectionBuilder
      */
     public function build(): Projection
     {
+        if ($this->nodes === []) {
+            throw new RuntimeException('Projection requires at least one attribute.');
+        }
+
         return new Projection($this->nodes);
     }
 }

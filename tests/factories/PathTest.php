@@ -37,15 +37,22 @@ final class PathTest extends TestCase
         $this->assertSame($expectedOutput, $path->__toString());
     }
 
+    public function testPathNodeIsCountable(): void
+    {
+        $node = Path::create('map', 'nestedAttribute1', 10, 'nestedAttribute2', 20)->project();
+
+        $this->assertCount(5, $node);
+    }
+
     /**
      * @return array
      */
     public static function invalidPathsProvider(): array
     {
         return [
-            ['', [], 'Attribute can not be empty string.'],
-            ['attribute', ['nested', -1], "Wrong path segment found after: 'nested'. Index can not be negative, '-1' given."],
-            ['attribute', ['nested', 1, ''], "Wrong path segment found after: 'nested[1]'. Path segment can not be empty string."],
+            ['', [], "Wrong path segment found after: ''. Path segment can not be empty string."],
+            ['attribute', ['nested', -1], "Wrong path segment found after: 'attribute.nested'. Index can not be negative, '-1' given."],
+            ['attribute', ['nested', 1, ''], "Wrong path segment found after: 'attribute.nested[1]'. Path segment can not be empty string."],
         ];
     }
 
