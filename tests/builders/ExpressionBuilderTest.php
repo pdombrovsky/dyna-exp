@@ -7,14 +7,26 @@ use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Builders\KeyConditionBuilder;
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
-use DynaExp\Evaluation\EvaluatorFactory;
 use DynaExp\Factories\Key;
 use DynaExp\Factories\Path;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionBuilderTest extends TestCase
 {
-    public function testBuildsCompositeExpressionContext(): void
+    public function testBuildCreatesFreshAliasesEachTime(): void
+    {
+        $builder = (new ExpressionBuilder())
+            ->setFilter(Path::create('status')->equal('ACTIVE'));
+
+        $first = $builder->build()->toArray();
+        $second = $builder->build()->toArray();
+
+        $this->assertSame($first, $second);
+        $this->assertSame(['#0' => 'status'], $first['ExpressionAttributeNames']);
+        $this->assertSame([':0' => 'ACTIVE'], $first['ExpressionAttributeValues']);
+    }
+
+    public function testBuildsCompositeExpressionResult(): void
     {
         $customerName = Path::create('customer', 'name');
         $ordersTotal = Path::create('orders', 0, 'total');
@@ -49,14 +61,14 @@ final class ExpressionBuilderTest extends TestCase
             )
             ->build();
 
-        $context = (new ExpressionBuilder())
+        $result = (new ExpressionBuilder())
             ->setProjection($projection)
             ->setKeyCondition($keyCondition)
             ->setFilter($filter)
             ->setUpdate($update)
-            ->build(new EvaluatorFactory());
+            ->build();
 
-        $array = $context->toArray();
+        $array = $result->toArray();
 
         $this->assertSame(
             [

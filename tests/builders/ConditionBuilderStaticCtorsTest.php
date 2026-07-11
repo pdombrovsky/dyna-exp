@@ -16,7 +16,8 @@ final class ConditionBuilderStaticCtorsTest extends TestCase
 
         $built = ConditionBuilder::allOf($c1, $c2)->build();
         $this->assertSame(ConditionTypeEnum::andCond, $built->type);
-        $this->assertCount(2, $built->nodes);
+        $this->assertSame($c1, $built->firstOperand());
+        $this->assertSame([$c2], $built->tailOperands());
     }
 
     public function testAnyOfCreatesOrCondition(): void
@@ -26,7 +27,8 @@ final class ConditionBuilderStaticCtorsTest extends TestCase
 
         $built = ConditionBuilder::anyOf($c1, $c2)->build();
         $this->assertSame(ConditionTypeEnum::orCond, $built->type);
-        $this->assertCount(2, $built->nodes);
+        $this->assertSame($c1, $built->firstOperand());
+        $this->assertSame([$c2], $built->tailOperands());
     }
 }
 

@@ -2,10 +2,9 @@
 
 namespace DynaExp\Nodes;
 
-use DynaExp\Evaluation\EvaluatorInterface;
-use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\Traits\NodesToStringTrait;
 use Stringable;
+use function sprintf;
 
 final readonly class Size implements EvaluableInterface, Stringable
 {
@@ -14,25 +13,41 @@ final readonly class Size implements EvaluableInterface, Stringable
     const FMT_STRING = "size (%s)";
 
     /**
-     * @param array<EvaluableInterface> $nodes
+     * @param PathNode $target
      */
-    public function __construct(public array $nodes)
-    {  
-    }
-
-    /**
-     * @param EvaluatorInterface $evaluator
-     * @return string
-     */
-    public function evaluate(EvaluatorInterface $evaluator): string
+    private function __construct(private PathNode $target)
     {
-        return $evaluator->evaluateSize($this);
     }
 
     /**
-     * @inheritDoc
+     * @param PathNode $target
+     * @return Size
      */
-    public function convertToString(array $convertedNodes): string
+    public static function of(PathNode $target): self
+    {
+        return new self($target);
+    }
+
+    /**
+     * @return PathNode
+     */
+    public function target(): PathNode
+    {
+        return $this->target;
+    }
+
+    /**
+     * @return list<mixed>
+     */
+    protected function operands(): array
+    {
+        return [$this->target];
+    }
+
+    /**
+     * @param array<int|string, string> $convertedNodes
+     */
+    protected function format(array $convertedNodes): string
     {
         return sprintf(self::FMT_STRING, ...$convertedNodes);
     }

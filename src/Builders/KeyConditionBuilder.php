@@ -19,11 +19,7 @@ final class KeyConditionBuilder
      */
     public function __construct(private KeyCondition $leftKeyCondition)
     {
-        if ($leftKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
-
-            throw new InvalidArgumentException("Condition 'AND' must not be used twice");
-
-        }
+        self::assertSimple($leftKeyCondition);
 
         $this->rightKeyCondition = null;
     }
@@ -43,21 +39,21 @@ final class KeyConditionBuilder
     }
 
     /**
-     * Adds a right-hand side KeyCondition with an AND operator to the existing left-hand side KeyCondition.
-     * If a right-hand side KeyCondition has already been set, it will be overwritten.
-     * This method is intended for a single AND combination scenario.
+     * Adds a single right-hand side KeyCondition with an AND operator.
      *
      * @param KeyCondition $rightKeyCondition The right-hand side condition to be combined with the left one.
      * @return self
-     * @throws InvalidArgumentException if the provided KeyCondition has a type of `AND`.
+     * @throws InvalidArgumentException
      */
     public function and(KeyCondition $rightKeyCondition): self
     {
-        if ($rightKeyCondition->type === KeyConditionTypeEnum::andKeyCond) {
+        if ($this->rightKeyCondition !== null) {
 
-            throw new InvalidArgumentException("Condition 'AND' must not be used twice");
+            throw new InvalidArgumentException('Only one AND key condition is allowed.');
 
         }
+
+        self::assertSimple($rightKeyCondition);
 
         $this->rightKeyCondition = $rightKeyCondition;
 
@@ -70,7 +66,20 @@ final class KeyConditionBuilder
     public function build(): KeyCondition
     {
         return $this->rightKeyCondition ?
-            new KeyCondition(KeyConditionTypeEnum::andKeyCond, $this->leftKeyCondition, $this->rightKeyCondition) :
+            KeyCondition::and($this->leftKeyCondition, $this->rightKeyCondition) :
             $this->leftKeyCondition;
     }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private static function assertSimple(KeyCondition $condition): void
+    {
+        if ($condition->type === KeyConditionTypeEnum::andKeyCond) {
+
+            throw new InvalidArgumentException("Condition 'AND' must not be nested.");
+
+        }
+    }
+
 }
