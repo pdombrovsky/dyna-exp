@@ -5,34 +5,49 @@ namespace DynaExp\Factories;
 use DynaExp\Builders\ProjectableInterface;
 use DynaExp\Enums\AttributeTypeEnum;
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Factories\IfNotExists;
-use DynaExp\Factories\Size;
+use DynaExp\Factories\DefaultValue;
+use DynaExp\Factories\AttributeSize;
+use DynaExp\Factories\Internal\ExpressionOperandInterface;
 use DynaExp\Factories\Traits\ConditionTrait;
 use DynaExp\Factories\Traits\OperationTrait;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use Stringable;
 
-final readonly class Path implements Stringable, ProjectableInterface, ExpressionOperandInterface
+final readonly class Attribute implements Stringable, ProjectableInterface, ExpressionOperandInterface
 {
     use ConditionTrait;
     use OperationTrait;
 
     /**
-     * @param PathNode $pathNode
+     * @var Path
      */
-    private function __construct(private PathNode $pathNode)
+    private Path $evaluable;
+
+    /**
+     * @param Path $path
+     */
+    private function __construct(Path $path)
     {
+        $this->evaluable = $path;
     }
 
     /**
-     * @return PathNode
+     * @return Path
      */
-    public function project(): PathNode
+    protected function evaluable(): Path
     {
-        return $this->pathNode;
+        return $this->evaluable;
+    }
+
+    /**
+     * @return Path
+     */
+    public function project(): Path
+    {
+        return $this->evaluable;
     }
 
     /**
@@ -42,7 +57,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function attributeExists(): Condition
     {
-        return Condition::attributeExists($this->pathNode);
+        return Condition::attributeExists($this->evaluable);
     }
 
     /**
@@ -52,7 +67,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function attributeNotExists(): Condition
     {
-        return Condition::attributeNotExists($this->pathNode);
+        return Condition::attributeNotExists($this->evaluable);
     }
 
     /**
@@ -63,7 +78,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function attributeType(AttributeTypeEnum $type): Condition
     {
-        return Condition::attributeType($this->pathNode, $type->value);
+        return Condition::attributeType($this->evaluable, $type->value);
     }
 
     /**
@@ -85,7 +100,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function beginsWith(mixed $prefix): Condition
     {
-        return Condition::beginsWith($this->pathNode, $prefix);
+        return Condition::beginsWith($this->evaluable, $prefix);
     }
 
     /**
@@ -107,7 +122,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function contains(mixed $value): Condition
     {
-        return Condition::contains($this->pathNode, $value);
+        return Condition::contains($this->evaluable, $value);
     }
 
     /**
@@ -124,22 +139,22 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
     /**
      * Retrieves the size of the attribute.
      *
-     * @return Size
+     * @return AttributeSize
      */
-    public function size(): Size
+    public function size(): AttributeSize
     {
-        return new Size($this->pathNode);
+        return new AttributeSize($this->evaluable);
     }
 
     /**
      * Sets a value if the attribute does not exist.
      *
      * @param mixed $value The value to set.
-     * @return IfNotExists
+     * @return DefaultValue
      */
-    public function ifNotExists(mixed $value): IfNotExists
+    public function ifNotExists(mixed $value): DefaultValue
     {
-        return new IfNotExists($this->pathNode, $value);
+        return new DefaultValue($this->evaluable, $value);
     }
 
     /**
@@ -150,7 +165,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function add(mixed $value): Action
     {
-        return Action::add($this->pathNode, $value);
+        return Action::add($this->evaluable, $value);
     }
 
     /**
@@ -161,7 +176,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function delete(mixed $value): Action
     {
-        return Action::delete($this->pathNode, $value);
+        return Action::delete($this->evaluable, $value);
     }
 
     /**
@@ -171,33 +186,33 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function remove(): Action
     {
-        return Action::remove($this->pathNode);
+        return Action::remove($this->evaluable);
     }
 
     /**
      * Creates an action to set the attribute to a specified value.
      *
-     * @param Operation|Path|IfNotExists|mixed $value The value or operation to set.
+     * @param Operation|Attribute|DefaultValue|mixed $value The value or operation to set.
      * @return  Action
      */
     public function set(mixed $value): Action
     {
         if ($value instanceof ExpressionOperandInterface) {
 
-            $value = $value->toNode();
+            $value = $value->toEvaluable();
         }
 
-        return Action::set($this->pathNode, $value);
+        return Action::set($this->evaluable, $value);
     }
 
     /**
      * Returns parent path factory if parent path exists
      * 
-     * @return Path|null
+     * @return Attribute|null
      */
     public function parent(): ?self
     {
-        $parentNode = $this->pathNode->parent();
+        $parentNode = $this->evaluable->parent();
 
         return $parentNode ? new self($parentNode) : null;
     }
@@ -210,18 +225,18 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function child(string|int ...$segments): self
     {
-        return new self($this->pathNode->child($segments));
+        return new self($this->evaluable->child($segments));
     }
 
     /**
      * Check if the current factory path is parent of other
      * 
-     * @param Path $other
+     * @param Attribute $other
      * @return bool
      */
-    public function isParentOf(Path $other): bool
+    public function isParentOf(Attribute $other): bool
     {
-        return $this->pathNode->isParentOf($other->pathNode);
+        return $this->evaluable->isParentOf($other->evaluable);
     }
 
     /**
@@ -231,7 +246,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function lastSegment(): int|string
     {
-        return $this->pathNode->lastSegment();
+        return $this->evaluable->lastSegment();
     }
 
     /**
@@ -241,7 +256,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function searchExpression(bool $resetIndexes = false): string
     {
-        return $this->pathNode->searchExpression($resetIndexes);
+        return $this->evaluable->searchExpression($resetIndexes);
     }
 
     /**
@@ -259,7 +274,7 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function marshaledSearchExpression(bool $resetIndexes = false): string
     {
-        return $this->pathNode->marshaledSearchExpression($resetIndexes);
+        return $this->evaluable->marshaledSearchExpression($resetIndexes);
     }
 
     /**
@@ -267,18 +282,18 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      */
     public function __toString(): string
     {
-        return $this->pathNode->__toString();
+        return $this->evaluable->__toString();
     }
 
     /**
      * @param string $attribute
      * @param string|int ...$segments
      * @throws InvalidArgumentException
-     * @return Path
+     * @return Attribute
      */
     public static function create(string $attribute, string|int ...$segments): self
     {
-        return new self(PathNode::create($attribute, ...$segments));
+        return new self(Path::create($attribute, ...$segments));
     }
 
     /**
@@ -291,10 +306,10 @@ final readonly class Path implements Stringable, ProjectableInterface, Expressio
      * 
      * @param string $pathString
      * @throws InvalidArgumentException
-     * @return \DynaExp\Factories\Path
+     * @return \DynaExp\Factories\Attribute
      */
-    public static function fromString(string $pathString): Path
+    public static function fromString(string $pathString): Attribute
     {
-        return new self(PathNode::fromString($pathString));
+        return new self(Path::fromString($pathString));
     }
 }

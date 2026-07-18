@@ -13,25 +13,25 @@ final readonly class Size implements EvaluableInterface, Stringable
     const FMT_STRING = "size (%s)";
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      */
-    private function __construct(private PathNode $target)
+    private function __construct(private Path $target)
     {
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @return Size
      */
-    public static function of(PathNode $target): self
+    public static function of(Path $target): self
     {
         return new self($target);
     }
 
     /**
-     * @return PathNode
+     * @return Path
      */
-    public function target(): PathNode
+    public function target(): Path
     {
         return $this->target;
     }

@@ -2,75 +2,77 @@
 
 namespace DynaExp\Factories\Traits;
 
-use DynaExp\Factories\ExpressionOperandInterface;
-use DynaExp\Factories\IfNotExists;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\DefaultValue;
+use DynaExp\Factories\Attribute;
+use DynaExp\Factories\Internal\ExpressionOperandInterface;
 use DynaExp\Nodes\EvaluableInterface;
 use DynaExp\Nodes\Operation;
 
 trait OperationTrait
 {
+    abstract protected function evaluable(): EvaluableInterface;
+
     /**
      * Creates an operation to add a specified value to the attribute.
      *
-     * @param Path|IfNotExists|mixed $value The value or operation to add.
+     * @param Attribute|DefaultValue|mixed $value The value or operation to add.
      * @return Operation
      */
     public function plus(mixed $value): Operation
     {
         return Operation::plus(
-            $this->pathNode,
-            $value instanceof ExpressionOperandInterface ? $value->toNode() : $value
+            $this->evaluable(),
+            $value instanceof ExpressionOperandInterface ? $value->toEvaluable() : $value
         );
     }
 
     /**
      * Creates an operation to subtract a specified value from the attribute.
      *
-     * @param Path|IfNotExists|mixed $value The value or operation to subtract.
+     * @param Attribute|DefaultValue|mixed $value The value or operation to subtract.
      * @return Operation
      */
     public function minus(mixed $value): Operation
     {
         return Operation::minus(
-            $this->pathNode,
-            $value instanceof ExpressionOperandInterface ? $value->toNode() : $value
+            $this->evaluable(),
+            $value instanceof ExpressionOperandInterface ? $value->toEvaluable() : $value
         );
     }
 
     /**
      * Creates an operation to append values to a list attribute.
      *
-     * @param Path|IfNotExists|mixed $values The values or operation to append.
+     * @param Attribute|DefaultValue|mixed $values The values or operation to append.
      * @return Operation
      */
     public function listAppend(mixed $values): Operation
     {
         return Operation::listAppend(
-            $this->pathNode,
-            $values instanceof ExpressionOperandInterface ? $values->toNode() : $values
+            $this->evaluable(),
+            $values instanceof ExpressionOperandInterface ? $values->toEvaluable() : $values
         );
     }
 
     /**
      * Creates an operation to prepend values to a list attribute.
      *
-     * @param Path|IfNotExists|mixed $values The values or operation to prepend.
+     * @param Attribute|DefaultValue|mixed $values The values or operation to prepend.
      * @return Operation
      */
     public function listPrepend(mixed $values): Operation
     {
         return Operation::listPrepend(
-            $this->pathNode,
-            $values instanceof ExpressionOperandInterface ? $values->toNode() : $values
+            $this->evaluable(),
+            $values instanceof ExpressionOperandInterface ? $values->toEvaluable() : $values
         );
     }
 
     /**
      * @inheritDoc
      */
-    public function toNode(): EvaluableInterface
+    public function toEvaluable(): EvaluableInterface
     {
-        return $this->pathNode;
+        return $this->evaluable();
     }
 }

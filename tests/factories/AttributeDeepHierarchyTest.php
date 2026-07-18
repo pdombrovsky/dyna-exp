@@ -3,14 +3,14 @@
 namespace DynaExp\Tests\Factories;
 
 use DynaExp\Evaluation\Evaluator;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\TestCase;
 
-final class PathDeepHierarchyTest extends TestCase
+final class AttributeDeepHierarchyTest extends TestCase
 {
     public function testEvaluatesDeepHierarchyWithManySegments(): void
     {
-        $path = Path::create(
+        $path = Attribute::create(
             'level0',
             'level1',
             'level2',

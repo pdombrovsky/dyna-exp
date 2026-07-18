@@ -4,19 +4,19 @@ namespace DynaExp\Tests\Builders;
 
 use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Builders\UpdateBuilder;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\TestCase;
 
 final class UpdateBuilderNestedOperationsTest extends TestCase
 {
     public function testNestedOperationsRenderedCorrectly(): void
     {
-        $score = Path::create('items', 0, 'score');
-        $backup = Path::create('items', 0, 'scoreBackup');
-        $history = Path::create('items', 0, 'history');
-        $historyPayload = Path::create('items', 0, 'historyPayload');
-        $stats = Path::create('stats', 'totalScore');
-        $tags = Path::create('items', 0, 'tags');
+        $score = Attribute::create('items', 0, 'score');
+        $backup = Attribute::create('items', 0, 'scoreBackup');
+        $history = Attribute::create('items', 0, 'history');
+        $historyPayload = Attribute::create('items', 0, 'historyPayload');
+        $stats = Attribute::create('stats', 'totalScore');
+        $tags = Attribute::create('items', 0, 'tags');
 
         $update = (new UpdateBuilder())
             ->add(

@@ -7,7 +7,7 @@ use DynaExp\Evaluation\Evaluator;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\KeyCondition;
 use DynaExp\Nodes\Operation;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Size;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +18,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluatePath()
     {
-        $path = PathNode::create('attribute', 'nested1', 2, 'nested2');
+        $path = Path::create('attribute', 'nested1', 2, 'nested2');
 
         $evaluator = new Evaluator();
 
@@ -44,7 +44,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public function testEvaluateSize()
     {
-        $path = PathNode::create('attribute', 'nested1', 2, 'nested2');
+        $path = Path::create('attribute', 'nested1', 2, 'nested2');
 
         $size = Size::of($path);
 
@@ -72,7 +72,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function conditionProvider(): array
     {
-        $path = PathNode::create('attribute', 'nested1', 0, 'nested2', 3);
+        $path = Path::create('attribute', 'nested1', 0, 'nested2', 3);
 
         return [
             [
@@ -297,7 +297,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function keyConditionProvider(): array
     {
-        $path = PathNode::create('keyAttribute');
+        $path = Path::create('keyAttribute');
 
         return [
             [
@@ -374,7 +374,7 @@ final class EvaluatorSimpleTest extends TestCase
             [
                 KeyCondition::and(
                     KeyCondition::equal($path, 'value'),
-                    KeyCondition::lessThan(PathNode::create('keyAttribute2'), 10)
+                    KeyCondition::lessThan(Path::create('keyAttribute2'), 10)
                 ),
                 '#0 = :0 AND #1 < :1',
                 [
@@ -397,7 +397,7 @@ final class EvaluatorSimpleTest extends TestCase
 
     public static function operationProvider(): array
     {
-        $path = PathNode::create('someAttribute', 1, 'nestedAttribute');
+        $path = Path::create('someAttribute', 1, 'nestedAttribute');
 
         return [
             [
@@ -412,7 +412,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                Operation::plus($path, PathNode::create('otherAttibute')),
+                Operation::plus($path, Path::create('otherAttibute')),
                 '#0[1].#1 + #2',
                 [
                     '#0' => 'someAttribute',
@@ -433,7 +433,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                Operation::minus($path, PathNode::create('otherAttibute')),
+                Operation::minus($path, Path::create('otherAttibute')),
                 '#0[1].#1 - #2',
                 [
                     '#0' => 'someAttribute',
@@ -454,7 +454,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                Operation::listAppend($path, PathNode::create('otherAttibute')),
+                Operation::listAppend($path, Path::create('otherAttibute')),
                 'list_append(#0[1].#1, #2)',
                 [
                     '#0' => 'someAttribute',
@@ -475,7 +475,7 @@ final class EvaluatorSimpleTest extends TestCase
                 ]
             ],
             [
-                Operation::listPrepend($path, PathNode::create('otherAttibute')),
+                Operation::listPrepend($path, Path::create('otherAttibute')),
                 'list_append(#2, #0[1].#1)',
                 [
                     '#0' => 'someAttribute',

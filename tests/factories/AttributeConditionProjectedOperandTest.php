@@ -3,14 +3,14 @@
 namespace DynaExp\Tests\Factories;
 
 use DynaExp\Evaluation\Evaluator;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\TestCase;
 
-final class PathConditionProjectedOperandTest extends TestCase
+final class AttributeConditionProjectedOperandTest extends TestCase
 {
     public function testProjectedPathCanBeUsedAsComparisonOperand(): void
     {
-        $condition = Path::create('left')->equal(Path::create('right')->project());
+        $condition = Attribute::create('left')->equal(Attribute::create('right')->project());
 
         $evaluator = new Evaluator();
 
@@ -21,7 +21,7 @@ final class PathConditionProjectedOperandTest extends TestCase
 
     public function testProjectedPathCanBeUsedAsContainsOperand(): void
     {
-        $condition = Path::create('tags')->contains(Path::create('selectedTag')->project());
+        $condition = Attribute::create('tags')->contains(Attribute::create('selectedTag')->project());
 
         $evaluator = new Evaluator();
 
@@ -32,8 +32,8 @@ final class PathConditionProjectedOperandTest extends TestCase
 
     public function testPathFactoryObjectWithoutProjectIsTreatedAsValue(): void
     {
-        $right = Path::create('right');
-        $condition = Path::create('left')->equal($right);
+        $right = Attribute::create('right');
+        $condition = Attribute::create('left')->equal($right);
 
         $evaluator = new Evaluator();
 

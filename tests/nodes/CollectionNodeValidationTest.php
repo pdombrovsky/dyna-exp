@@ -6,14 +6,14 @@ use DynaExp\Enums\ActionTypeEnum;
 use DynaExp\Exceptions\InvalidArgumentException;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\ActionsSequence;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Projection;
 use DynaExp\Nodes\Update;
 use PHPUnit\Framework\TestCase;
 
 final class CollectionNodeValidationTest extends TestCase
 {
-    public function testProjectionRequiresAtLeastOnePathNode(): void
+    public function testProjectionRequiresAtLeastOnePath(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Projection requires at least one attribute.');
@@ -21,10 +21,10 @@ final class CollectionNodeValidationTest extends TestCase
         new Projection([]);
     }
 
-    public function testProjectionRequiresPathNodes(): void
+    public function testProjectionRequiresPaths(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Projection attribute must be DynaExp\Nodes\PathNode, string given.');
+        $this->expectExceptionMessage('Projection attribute must be DynaExp\Nodes\Path, string given.');
 
         new Projection(['name']);
     }
@@ -51,7 +51,7 @@ final class CollectionNodeValidationTest extends TestCase
         $this->expectExceptionMessage("Actions sequence type 'SET' does not match action type 'REMOVE'.");
 
         new ActionsSequence(ActionTypeEnum::set, [
-            Action::remove(PathNode::create('oldName')),
+            Action::remove(Path::create('oldName')),
         ]);
     }
 
@@ -78,10 +78,10 @@ final class CollectionNodeValidationTest extends TestCase
 
         new Update([
             new ActionsSequence(ActionTypeEnum::set, [
-                Action::set(PathNode::create('name'), 'Bob'),
+                Action::set(Path::create('name'), 'Bob'),
             ]),
             new ActionsSequence(ActionTypeEnum::set, [
-                Action::set(PathNode::create('count'), 1),
+                Action::set(Path::create('count'), 1),
             ]),
         ]);
     }

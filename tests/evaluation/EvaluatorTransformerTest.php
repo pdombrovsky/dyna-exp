@@ -5,10 +5,10 @@ namespace DynaExp\Tests\Evaluation;
 use DynaExp\Builders\ExpressionBuilder;
 use DynaExp\Enums\ConditionTypeEnum;
 use DynaExp\Evaluation\ExpressionPreprocessorInterface;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Nodes\Condition;
 use DynaExp\Nodes\EvaluableInterface;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use PHPUnit\Framework\TestCase;
 
 final class EvaluatorTransformerTest extends TestCase
@@ -25,7 +25,7 @@ final class EvaluatorTransformerTest extends TestCase
                 $left = $node->firstOperand();
                 $right = $node->tailOperands()[0] ?? null;
 
-                if (! $left instanceof PathNode || $left->segments !== ['status'] || ! is_string($right)) {
+                if (! $left instanceof Path || $left->segments !== ['status'] || ! is_string($right)) {
                     return $node;
                 }
 
@@ -38,7 +38,7 @@ final class EvaluatorTransformerTest extends TestCase
         };
 
         $result = (new ExpressionBuilder($preprocessor))
-            ->setFilter(Path::create('status')->equal('active'))
+            ->setFilter(Attribute::create('status')->equal('active'))
             ->build()
             ->toArray();
 

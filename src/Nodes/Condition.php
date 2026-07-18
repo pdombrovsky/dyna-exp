@@ -116,49 +116,49 @@ final readonly class Condition implements EvaluableInterface, Stringable
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param string $type
      * @return Condition
      */
-    public static function attributeType(PathNode $target, string $type): self
+    public static function attributeType(Path $target, string $type): self
     {
         return new self(ConditionTypeEnum::attrTypeCond, $target, [$type]);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $prefix
      * @return Condition
      */
-    public static function beginsWith(PathNode $target, mixed $prefix): self
+    public static function beginsWith(Path $target, mixed $prefix): self
     {
         return new self(ConditionTypeEnum::beginsWithCond, $target, [$prefix]);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $value
      * @return Condition
      */
-    public static function contains(PathNode $target, mixed $value): self
+    public static function contains(Path $target, mixed $value): self
     {
         return new self(ConditionTypeEnum::containsCond, $target, [$value]);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @return Condition
      */
-    public static function attributeExists(PathNode $target): self
+    public static function attributeExists(Path $target): self
     {
         return new self(ConditionTypeEnum::attrExistsCond, $target);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @return Condition
      */
-    public static function attributeNotExists(PathNode $target): self
+    public static function attributeNotExists(Path $target): self
     {
         return new self(ConditionTypeEnum::attrNotExistsCond, $target);
     }

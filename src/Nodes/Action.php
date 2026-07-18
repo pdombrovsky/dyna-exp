@@ -13,59 +13,59 @@ final readonly class Action implements EvaluableInterface, Stringable
 
     /**
      * @param ActionTypeEnum $type
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $argument
      */
     private function __construct(
         public ActionTypeEnum $type,
-        private PathNode $target,
+        private Path $target,
         private mixed $argument = null,
     ) {
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $value
      * @return Action
      */
-    public static function set(PathNode $target, mixed $value): self
+    public static function set(Path $target, mixed $value): self
     {
         return new self(ActionTypeEnum::set, $target, $value);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $value
      * @return Action
      */
-    public static function add(PathNode $target, mixed $value): self
+    public static function add(Path $target, mixed $value): self
     {
         return new self(ActionTypeEnum::add, $target, $value);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @param mixed $value
      * @return Action
      */
-    public static function delete(PathNode $target, mixed $value): self
+    public static function delete(Path $target, mixed $value): self
     {
         return new self(ActionTypeEnum::delete, $target, $value);
     }
 
     /**
-     * @param PathNode $target
+     * @param Path $target
      * @return Action
      */
-    public static function remove(PathNode $target): self
+    public static function remove(Path $target): self
     {
         return new self(ActionTypeEnum::remove, $target);
     }
 
     /**
-     * @return PathNode
+     * @return Path
      */
-    public function target(): PathNode
+    public function target(): Path
     {
         return $this->target;
     }

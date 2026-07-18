@@ -3,12 +3,12 @@
 namespace DynaExp\Tests\Nodes;
 
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
-final class PathNodeValidationTest extends TestCase
+final class PathValidationTest extends TestCase
 {
     public static function invalidChildSegmentsProvider(): array
     {
@@ -38,6 +38,6 @@ final class PathNodeValidationTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
 
-        PathNode::create('root')->child($segments);
+        Path::create('root')->child($segments);
     }
 }
