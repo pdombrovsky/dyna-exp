@@ -16,8 +16,8 @@ composer require pdombrovsky/dyna-exp:^1.0@alpha
 
 ## Overview
 
-- **Nodes** – small immutable objects such as `Condition`, `Operation`, `Projection`, `Update`, or `PathNode`. They hold typed expression data and evaluate themselves through the internal evaluator contract.
-- **Factories** – ergonomic wrappers (`Path`, `Key`, `Size`, `IfNotExists`, …) that expose DynamoDB-oriented helpers. One `Path` instance can create conditions, updates, projections, search expressions, and aliases without re-parsing strings.
+- **Nodes** – small immutable objects such as `Path`, `Condition`, `Operation`, `Projection`, or `Update`. They hold typed expression data and evaluate themselves through the internal evaluator contract.
+- **Factories** – ergonomic wrappers (`Attribute`, `Key`, `AttributeSize`, `DefaultValue`, …) that expose DynamoDB-oriented helpers. One `Attribute` instance can create conditions, updates, projections, search expressions, and aliases without re-parsing strings.
 - **Builders** – fluent APIs for assembling nodes (`ConditionBuilder`, `KeyConditionBuilder`, `ProjectionBuilder`, `UpdateBuilder`, `ExpressionBuilder`).
 - **Evaluator** – turns nodes into DynamoDB strings, allocates deterministic `ExpressionAttributeNames`/`ExpressionAttributeValues`, keeps alias usage consistent even when nodes are reused, and can optionally normalize nodes through a preprocessor before rendering.
 - **ExpressionResult** – a read-only result object with a simple `toArray()` export. You stay in control of marshalling to DynamoDB types, so the library works with any SDK or transport layer.
@@ -25,13 +25,13 @@ composer require pdombrovsky/dyna-exp:^1.0@alpha
 ## Quick Start
 
 ```php
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Factories\Key;
 use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
 
-$price = Path::create('price');
-$stock = Path::create('inventory', 'total');
+$price = Attribute::create('price');
+$stock = Attribute::create('inventory', 'total');
 
 $condition = ConditionBuilder::allOf(
     $price->lessThanEqual(100),
@@ -69,22 +69,26 @@ DynaExp validates local expression-builder invariants: path syntax, path segment
 
 # Factories
 
-## Path
+## Attribute
 
-`Path` is the main building block for attribute access in filters, projections, key conditions, and updates. Under the hood it wraps an immutable `PathNode`, validates every segment, and keeps DynamoDB-specific metadata such as deterministic string representations, `searchExpression()` output, and stable aliased evaluation output.  
+`Attribute` is the main fluent helper for attribute access in filters, projections, conditions, and updates. Under the hood it wraps an immutable `DynaExp\Nodes\Path`, validates every segment, and keeps DynamoDB-specific metadata such as deterministic string representations, `searchExpression()` output, and stable aliased evaluation output.
 
-A single `Path` object can be reused across the whole expression: the helper methods mixed in from `ConditionTrait` and `OperationTrait` let you create equality/range/containment checks, attribute existence/type predicates, arithmetic updates, list append/prepend operations, `if_not_exists`, `size()`, and more – all off the same root path.
+A single `Attribute` object can be reused across the whole expression: the helper methods mixed in from `ConditionTrait` and `OperationTrait` let you create equality/range/containment checks, attribute existence/type predicates, arithmetic updates, list append/prepend operations, `if_not_exists`, `size()`, and more – all off the same root path.
 
 Examples:
 ```php
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Evaluation\Evaluator;
+use DynaExp\Nodes\Path;
 
-// Programmatic path
-$p = Path::create('map', 'nested', 0, 'attr');   // map.nested[0].attr
+// Programmatic attribute helper
+$p = Attribute::create('map', 'nested', 0, 'attr');   // map.nested[0].attr
 
 // From string with quotes to keep dots inside a segment
-$p2 = Path::fromString('map."a.b"[3].c');       // map.a.b[3].c
+$p2 = Attribute::fromString('map."a.b"[3].c');        // map.a.b[3].c
+
+// Standalone path node, useful when you need the raw expression operand
+$nodePath = Path::fromString('map."a.b"[3].c');
 
 // JMESPath-like search expression (quoted segments). Optional index reset.
 $p2->searchExpression();        // "map"."a.b"[3]."c"
@@ -101,17 +105,17 @@ $exprPath = $evaluator->evaluate($p2->project());   // "#0.#1[3].#2"
 $namesMap = $evaluator->getAttributeNameAliases();  // ['#0' => 'map', '#1' => 'a.b', '#2' => 'c']
 
 // Parent/child helpers
-$p3 = Path::create('root', 'child');  // root.child
-$p3Parent = $p3->parent();             // Path for 'root'
+$p3 = Attribute::create('root', 'child');  // root.child
+$p3Parent = $p3->parent();             // Attribute for 'root'
 $p3Child  = $p3->child('leaf');        // root.child.leaf
 
 // Check ancestry
 $nested = $p3->child('leaf', 'branch');
 $p3->isParentOf($nested); // true
-$p3->project()->relativePathOf($nested->project()); // PathNode for 'leaf.branch'
+$p3->project()->relativePathOf($nested->project()); // Path for 'leaf.branch'
 count($nested->project()); // 4
 
-$counter = Path::create('stats', 'counter');
+$counter = Attribute::create('stats', 'counter');
 
 // Reuse the same path for conditions and update actions
 $isNonNegative = $counter->greaterThanEqual(0);                   // Semantics: stats.counter >= :0
@@ -120,13 +124,13 @@ $increment = $counter->set($counter->ifNotExists(0)->plus(1));    // Semantics: 
 
 Notes:
 - Capabilities:
-  - `project()` exposes the underlying PathNode for projection builders or manual evaluation.
+  - `project()` exposes the underlying `DynaExp\Nodes\Path` for projection builders or manual evaluation.
   - `searchExpression($resetIndexes = false)` formats a deterministic, JMESPath-compatible string for native/unmarshaled item data. Attribute segments are emitted as quoted identifiers with JSON string escaping.
   - `marshaledSearchExpression($resetIndexes = false)` formats a JMESPath-compatible string for marshaled DynamoDB AttributeValue item data and points to the target AttributeValue wrapper.
-  - `parent()`, `child(...)`, `isParentOf(...)`, `lastSegment()`, `PathNode::relativePathOf(...)`, and `Countable` support safe path-tree navigation.
+  - `parent()`, `child(...)`, `isParentOf(...)`, `lastSegment()`, `Path::relativePathOf(...)`, and `Countable` support safe path-tree navigation.
   - Condition helpers include equality/range checks, `between()`, `in()`, `beginsWith()`, `contains()`, `attributeExists()`, and `attributeType()`.
   - Negative condition helpers include `notEqual()`, `notBetween()`, `notIn()`, `notBeginsWith()`, `notContains()`, `attributeNotExists()`, and `attributeTypeNot()`.
-- Parser rules (Path::fromString):
+- Parser rules (`Attribute::fromString()` and `DynaExp\Nodes\Path::fromString()`):
   - Dots split attribute segments: `map.nested.attr`
   - Brackets denote list indexes: `list[0][10]`
   - Double quotes wrap a segment to allow dots: `attr1."some.nested.attribute".attr2`
@@ -135,11 +139,11 @@ Notes:
 - Limitations:
   - Negative indexes, leading-zero indexes except `[0]`, indexes larger than `PHP_INT_MAX`, and empty segments are rejected at construction time (string parser or programmatic API).
   - Invalid JSON escape sequences in quoted segments are rejected.
-  - Path does not marshal attribute values; combine evaluated expressions with your own DynamoDB encoder.
+  - Attribute/path helpers do not marshal attribute values; combine evaluated expressions with your own DynamoDB encoder.
 - Values vs expression operands:
   - Plain values are stored in `ExpressionAttributeValues`.
-  - Objects passed as values are treated as opaque user payloads. For example, `Path::create('a')->equal(Path::create('b'))` stores the right-side `Path` object as `:0`.
-  - To use another path as an expression operand, pass the underlying node explicitly: `Path::create('a')->equal(Path::create('b')->project())` renders as `#0 = #1`.
+  - Objects passed as values are treated as opaque user payloads. For example, `Attribute::create('a')->equal(Attribute::create('b'))` stores the right-side `Attribute` object as `:0`.
+  - To use another path as an expression operand, pass the underlying node explicitly: `Attribute::create('a')->equal(Attribute::create('b')->project())` renders as `#0 = #1`.
 
 ## Key
 
@@ -163,42 +167,42 @@ $kc = (new KeyConditionBuilder($hash))
 Notes:
 - Other helpers on Key: `beginsWith()`, `greaterThan()`, `lessThanEqual()`, etc.
 
-## Size (via Path)
+## AttributeSize (via Attribute)
 
 Description:
-- Wrapper to use the DynamoDB `size()` function on a path, returning a factory with condition helpers.
+- Wrapper to use the DynamoDB `size()` function on a path, returning a helper with condition methods.
 
 Examples:
 ```php
 use DynaExp\Builders\ConditionBuilder;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 
-$sizeCond = Path::create('a')->size()->greaterThan(0);  // size(a) > :0
+$sizeCond = Attribute::create('a')->size()->greaterThan(0);  // size(a) > :0
 
 // You can nest size inside other expressions
 $existsAndSize = ConditionBuilder::allOf(
-    Path::create('a')->attributeExists(),
-    Path::create('a')->size()->lessThanEqual(25)
+    Attribute::create('a')->attributeExists(),
+    Attribute::create('a')->size()->lessThanEqual(25)
 )->build();
 ```
 
 Notes:
-- Usually created through `Path::create(...)->size()`; constructing directly is rarely needed.
+- Usually created through `Attribute::create(...)->size()`; constructing directly is rarely needed.
 
-## IfNotExists (via Path)
+## DefaultValue (via Attribute)
 
 Description:
 - Wrapper for `if_not_exists(path, value)` to use inside SET operations or nested operations.
 
 Examples:
 ```php
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 
-$p = Path::create('counter');
+$p = Attribute::create('counter');
 $setIfNot = $p->set($p->ifNotExists(0));  // SET counter = if_not_exists(counter, :0)
 
 // Preparing a default payload and storing a backup
-$map = Path::create('items', 0);
+$map = Attribute::create('items', 0);
 $score = $map->child('score');
 $backup = $map->child('backup');
 $update = (new DynaExp\Builders\UpdateBuilder())
@@ -223,12 +227,12 @@ Description:
 
 Examples:
 ```php
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Builders\ExpressionBuilder;
 
-$a = Path::create('a');
-$b = Path::create('b');
+$a = Attribute::create('a');
+$b = Attribute::create('b');
 
 $nested = (new ConditionBuilder($a->attributeExists()))
     ->and(
@@ -283,17 +287,17 @@ Notes:
 ## ProjectionBuilder
 
 Description:
-- Aggregates projected attributes into a `Projection` node. Inputs must implement `ProjectableInterface`, so both `Path` and `Key` can be projected.
+- Aggregates projected attributes into a `Projection` node. Inputs must implement `ProjectableInterface`, so both `Attribute` and `Key` can be projected.
 
 Examples:
 ```php
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Factories\Key;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 
 $projection = (new ProjectionBuilder(
-    Path::create('a'),
-    Path::create('b'),
+    Attribute::create('a'),
+    Attribute::create('b'),
     Key::create('pk')
 ))->build();
 ```
@@ -310,11 +314,11 @@ Description:
 Examples:
 ```php
 use DynaExp\Builders\UpdateBuilder;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Builders\ExpressionBuilder;
 
-$counter = Path::create('counter');
-$deprecatedFlag = Path::create('flags', 'deprecated');
+$counter = Attribute::create('counter');
+$deprecatedFlag = Attribute::create('flags', 'deprecated');
 
 $update = (new UpdateBuilder())
     ->add(
@@ -338,11 +342,11 @@ $ctx = (new ExpressionBuilder())
 
 ```php
 use DynaExp\Builders\UpdateBuilder;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Builders\ExpressionBuilder;
 
-$listAttr = Path::create('listAttr');
-$counter  = Path::create('counter');
+$listAttr = Attribute::create('listAttr');
+$counter  = Attribute::create('counter');
 
 $appendItems = $listAttr->set(
     $listAttr->ifNotExists([])->listAppend([1, 2, 3])
@@ -376,12 +380,12 @@ Notes:
 ### Complex nested update
 
 ```php
-$itemRoot = Path::create('items', 0);
+$itemRoot = Attribute::create('items', 0);
 $score = $itemRoot->child('score');
 $backup = $itemRoot->child('scoreBackup');
 $history = $itemRoot->child('history');
 $historyPayload = $itemRoot->child('historyPayload');
-$stats = Path::create('stats', 'totalScore');
+$stats = Attribute::create('stats', 'totalScore');
 $tags = $itemRoot->child('tags');
 
 $update = (new UpdateBuilder())
@@ -423,11 +427,11 @@ use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Enums\ExpressionTypeEnum;
 use DynaExp\Factories\Key;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 
-$name = Path::create('name');
-$price = Path::create('price');
-$status = Path::create('status');
+$name = Attribute::create('name');
+$price = Attribute::create('price');
+$status = Attribute::create('status');
 
 $filter = ConditionBuilder::allOf(
     $price->lessThan(100),
@@ -560,7 +564,7 @@ Note: these conversions are intended for debugging, tests and logs only. Do not 
 
 - Each call to the values aliaser produces a fresh placeholder (`:0`, `:1`, …) even if the same PHP value is passed multiple times. This avoids ambiguity for mutable or complex payloads and keeps the generated expression consistent with the generated value map.
 
-## Errors from Path::fromString
+## Errors from Attribute::fromString / Path::fromString
 
 Parser provides specific messages with processed prefix for:
 - Empty attribute name (including trailing dot)

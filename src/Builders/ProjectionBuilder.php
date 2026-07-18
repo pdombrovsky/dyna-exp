@@ -3,13 +3,13 @@
 namespace DynaExp\Builders;
 
 use DynaExp\Exceptions\RuntimeException;
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use DynaExp\Nodes\Projection;
 
 final class ProjectionBuilder
 {
     /**
-     * @var PathNode[]
+     * @var Path[]
      */
     private array $nodes;
 

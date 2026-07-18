@@ -59,11 +59,11 @@ final readonly class Operation implements EvaluableInterface, Stringable
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $fallback
      * @return Operation
      */
-    public static function ifNotExists(PathNode $path, mixed $fallback): self
+    public static function ifNotExists(Path $path, mixed $fallback): self
     {
         return new self(OperationTypeEnum::ifNotExists, $path, $fallback);
     }

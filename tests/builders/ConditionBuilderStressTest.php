@@ -4,7 +4,7 @@ namespace DynaExp\Tests\Builders;
 
 use DynaExp\Builders\ConditionBuilder;
 use DynaExp\Evaluation\Evaluator;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\TestCase;
 
 final class ConditionBuilderStressTest extends TestCase
@@ -13,7 +13,7 @@ final class ConditionBuilderStressTest extends TestCase
     {
         $metrics = [];
         for ($i = 0; $i < 5; $i++) {
-            $metrics[] = Path::create('metric' . $i);
+            $metrics[] = Attribute::create('metric' . $i);
         }
 
         $builder = new ConditionBuilder($metrics[0]->greaterThan(0));
@@ -21,8 +21,8 @@ final class ConditionBuilderStressTest extends TestCase
             $builder->and($metrics[$i]->greaterThan($i));
         }
 
-        $status = Path::create('status');
-        $flag = Path::create('flag');
+        $status = Attribute::create('status');
+        $flag = Attribute::create('flag');
 
         $builder->and(
             ConditionBuilder::anyOf(

@@ -3,11 +3,11 @@
 namespace DynaExp\Tests\Factories;
 
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class PathTest extends TestCase
+final class AttributeTest extends TestCase
 {
     /**
      * @return array
@@ -33,13 +33,13 @@ final class PathTest extends TestCase
     #[DataProvider('validPathsProvider')]
     public function testValidPaths(string $attribue, array $segments, string $expectedOutput)
     {
-        $path = Path::create($attribue, ...$segments);
+        $path = Attribute::create($attribue, ...$segments);
         $this->assertSame($expectedOutput, $path->__toString());
     }
 
-    public function testPathNodeIsCountable(): void
+    public function testProjectedPathIsCountable(): void
     {
-        $node = Path::create('map', 'nestedAttribute1', 10, 'nestedAttribute2', 20)->project();
+        $node = Attribute::create('map', 'nestedAttribute1', 10, 'nestedAttribute2', 20)->project();
 
         $this->assertCount(5, $node);
     }
@@ -67,6 +67,6 @@ final class PathTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
-        Path::create($attribue, ...$segments);
+        Attribute::create($attribue, ...$segments);
     }
 }

@@ -2,11 +2,11 @@
 
 namespace DynaExp\Tests\Nodes;
 
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class PathNodeSearchExpressionTest extends TestCase
+final class PathSearchExpressionTest extends TestCase
 {
     public static function expressionsProvider(): array
     {
@@ -45,7 +45,7 @@ final class PathNodeSearchExpressionTest extends TestCase
     #[DataProvider('expressionsProvider')]
     public function testSearchExpression(array $segments, bool $resetIndexes, string $expected): void
     {
-        $node = PathNode::create(...$segments);
+        $node = Path::create(...$segments);
         $this->assertSame($expected, $node->searchExpression($resetIndexes));
     }
 
@@ -76,7 +76,7 @@ final class PathNodeSearchExpressionTest extends TestCase
         string $expected,
     ): void
     {
-        $node = PathNode::create(...$segments);
+        $node = Path::create(...$segments);
 
         $this->assertSame($expected, $node->marshaledSearchExpression($resetIndexes));
     }
