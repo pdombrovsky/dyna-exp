@@ -3,9 +3,12 @@
 namespace DynaExp\Factories\Traits;
 
 use DynaExp\Nodes\Condition;
+use DynaExp\Nodes\EvaluableInterface;
 
 trait ConditionTrait
 {
+    abstract protected function evaluable(): EvaluableInterface;
+
     /**
      * Creates a condition to check if the attribute value is equal to the specified value.
      *
@@ -14,7 +17,7 @@ trait ConditionTrait
      */
     public function equal(mixed $value): Condition
     {
-        return Condition::equal($this->pathNode, $value);
+        return Condition::equal($this->evaluable(), $value);
     }
 
     /**
@@ -25,7 +28,7 @@ trait ConditionTrait
      */
     public function notEqual(mixed $value): Condition
     {
-        return Condition::notEqual($this->pathNode, $value);
+        return Condition::notEqual($this->evaluable(), $value);
     }
 
     /**
@@ -36,7 +39,7 @@ trait ConditionTrait
      */
     public function lessThan(mixed $value): Condition
     {
-        return Condition::lessThan($this->pathNode, $value);
+        return Condition::lessThan($this->evaluable(), $value);
     }
 
     /**
@@ -47,7 +50,7 @@ trait ConditionTrait
      */
     public function lessThanEqual(mixed $value): Condition
     {
-        return Condition::lessThanEqual($this->pathNode, $value);
+        return Condition::lessThanEqual($this->evaluable(), $value);
     }
 
     /**
@@ -58,7 +61,7 @@ trait ConditionTrait
      */
     public function greaterThan(mixed $value): Condition
     {
-        return Condition::greaterThan($this->pathNode, $value);
+        return Condition::greaterThan($this->evaluable(), $value);
     }
 
     /**
@@ -69,7 +72,7 @@ trait ConditionTrait
      */
     public function greaterThanEqual(mixed $value): Condition
     {
-        return Condition::greaterThanEqual($this->pathNode, $value);
+        return Condition::greaterThanEqual($this->evaluable(), $value);
     }
 
     /**
@@ -81,7 +84,7 @@ trait ConditionTrait
      */
     public function between(mixed $lower, mixed $upper): Condition
     {
-        return Condition::between($this->pathNode, $lower, $upper);
+        return Condition::between($this->evaluable(), $lower, $upper);
     }
 
     /**
@@ -105,7 +108,7 @@ trait ConditionTrait
      */
     public function in(mixed $value, mixed ...$range): Condition
     {
-        return Condition::in($this->pathNode, $value, ...$range);
+        return Condition::in($this->evaluable(), $value, ...$range);
     }
 
     /**

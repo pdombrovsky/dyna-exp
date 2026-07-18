@@ -8,7 +8,7 @@ use DynaExp\Builders\KeyConditionBuilder;
 use DynaExp\Builders\ProjectionBuilder;
 use DynaExp\Builders\UpdateBuilder;
 use DynaExp\Factories\Key;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\TestCase;
 
 final class ExpressionBuilderTest extends TestCase
@@ -16,7 +16,7 @@ final class ExpressionBuilderTest extends TestCase
     public function testBuildCreatesFreshAliasesEachTime(): void
     {
         $builder = (new ExpressionBuilder())
-            ->setFilter(Path::create('status')->equal('ACTIVE'));
+            ->setFilter(Attribute::create('status')->equal('ACTIVE'));
 
         $first = $builder->build()->toArray();
         $second = $builder->build()->toArray();
@@ -28,10 +28,10 @@ final class ExpressionBuilderTest extends TestCase
 
     public function testBuildsCompositeExpressionResult(): void
     {
-        $customerName = Path::create('customer', 'name');
-        $ordersTotal = Path::create('orders', 0, 'total');
-        $ordersStatus = Path::create('orders', 0, 'status');
-        $lastUpdated = Path::create('meta', 'updatedAt');
+        $customerName = Attribute::create('customer', 'name');
+        $ordersTotal = Attribute::create('orders', 0, 'total');
+        $ordersStatus = Attribute::create('orders', 0, 'status');
+        $lastUpdated = Attribute::create('meta', 'updatedAt');
 
         $projection = (new ProjectionBuilder($customerName, $ordersTotal))
             ->add($lastUpdated, Key::create('pk'))
@@ -55,9 +55,9 @@ final class ExpressionBuilderTest extends TestCase
                 $ordersTotal->set($ordersTotal->plus(5)),
                 $ordersStatus->set('SHIPPED'),
                 $lastUpdated->set($lastUpdated->ifNotExists('1970-01-01T00:00:00Z')),
-                Path::create('tags')->add(['priority']),
-                Path::create('flags')->delete(['legacy']),
-                Path::create('notes', 0)->remove()
+                Attribute::create('tags')->add(['priority']),
+                Attribute::create('flags')->delete(['legacy']),
+                Attribute::create('notes', 0)->remove()
             )
             ->build();
 

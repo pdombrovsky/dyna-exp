@@ -3,11 +3,11 @@
 namespace DynaExp\Tests\Factories;
 
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class PathQuotedTest extends TestCase
+final class AttributeQuotedTest extends TestCase
 {
     public static function validQuotedPathsProvider(): array
     {
@@ -30,7 +30,7 @@ final class PathQuotedTest extends TestCase
     #[DataProvider('validQuotedPathsProvider')]
     public function testValidQuotedPaths(string $input, string $expected)
     {
-        $path = Path::fromString($input);
+        $path = Attribute::fromString($input);
         $this->assertSame($expected, (string) $path);
     }
 
@@ -59,14 +59,14 @@ final class PathQuotedTest extends TestCase
 
     public function testQuotedBackslashEscapes(): void
     {
-        $path = Path::fromString('"a.b\\\\".c');
+        $path = Attribute::fromString('"a.b\\\\".c');
 
         $this->assertSame(['a.b\\', 'c'], $path->project()->segments);
     }
 
     public function testQuotedSegmentsUseJsonEscapes(): void
     {
-        $path = Path::fromString('"line\\nbreak"."tab\\tchar"."unicode\\u0041"."slash\\/key"."with\\backslash"');
+        $path = Attribute::fromString('"line\\nbreak"."tab\\tchar"."unicode\\u0041"."slash\\/key"."with\\backslash"');
 
         $this->assertSame(
             ["line\nbreak", "tab\tchar", 'unicodeA', 'slash/key', 'with' . chr(8) . 'ackslash'],
@@ -79,7 +79,7 @@ final class PathQuotedTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid quoted attribute name.');
 
-        Path::fromString('prefix."with\\xescape".suffix');
+        Attribute::fromString('prefix."with\\xescape".suffix');
     }
 
     #[DataProvider('invalidQuotedPathsProvider')]
@@ -87,6 +87,6 @@ final class PathQuotedTest extends TestCase
     {
         $this->expectException($exception);
         $this->expectExceptionMessage($message);
-        Path::fromString($input);
+        Attribute::fromString($input);
     }
 }

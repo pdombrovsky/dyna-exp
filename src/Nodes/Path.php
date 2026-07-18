@@ -19,10 +19,10 @@ use function is_string;
 use function json_encode;
 use function sprintf;
 
-final readonly class PathNode implements Stringable, EvaluableInterface, Countable
+final readonly class Path implements Stringable, EvaluableInterface, Countable
 {
     /**
-     * Creates PathNode from segments.
+     * Creates a path from segments.
      *
      * @param array<string|int> $segments
      */
@@ -31,7 +31,7 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
     }
 
     /**
-     * Creates validated PathNode from segments.
+     * Creates a validated path from segments.
      *
      * @param string|int ...$segments
      *
@@ -47,7 +47,7 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
     }
 
     /**
-     * Creates validated PathNode from a string path representation.
+     * Creates a validated path from a string path representation.
      *
      * @throws InvalidArgumentException
      */
@@ -120,6 +120,10 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
         return '';
     }
 
+    /**
+     * @param string $value
+     * @return bool
+     */
     private static function isValidUtf8(string $value): bool
     {
         try {
@@ -268,7 +272,7 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
     /**
      * Returns parent path node if exists
      * 
-     * @return PathNode
+     * @return Path
      */
     public function parent(): ?self
     {
@@ -284,7 +288,7 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
      * Returns child path node for given segments.
      *
      * @param array<int|string, string|int> $segments
-     * @return PathNode
+     * @return Path
      * @throws InvalidArgumentException
      */
     public function child(array $segments): self
@@ -324,10 +328,10 @@ final readonly class PathNode implements Stringable, EvaluableInterface, Countab
      * Return values:
      * - false when the given path is not a child of the current path;
      * - null when both paths are equal and the relative path is empty;
-     * - PathNode when the relative path is not empty.
+     * - Path when the relative path is not empty.
      * 
-     * @param PathNode $child
-     * @return false|PathNode|null
+     * @param Path $child
+     * @return false|Path|null
      */
     public function relativePathOf(self $child): false|null|self
     {

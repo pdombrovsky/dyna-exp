@@ -3,11 +3,11 @@
 namespace DynaExp\Tests\Factories;
 
 use DynaExp\Exceptions\InvalidArgumentException;
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class PathCreationTest extends TestCase
+final class AttributeCreationTest extends TestCase
 {
     /**
      * @return array
@@ -31,15 +31,15 @@ final class PathCreationTest extends TestCase
     #[DataProvider('validPathsCreationProvider')]
     public function testValidPathsCreation(string $inputPath, string $expectedOutput)
     {
-        $path = Path::fromString($inputPath);
+        $path = Attribute::fromString($inputPath);
         $this->assertSame($expectedOutput, $path->project()->__toString());
     }
 
     public function testFromStringDistinguishesListIndexesFromLiteralBracketAttributeNames(): void
     {
-        $this->assertSame(['a', 0, 'b'], Path::fromString('a[0].b')->project()->segments);
-        $this->assertSame(['a[0]b'], Path::fromString('"a[0]b"')->project()->segments);
-        $this->assertSame(['a[0]b'], Path::create('a[0]b')->project()->segments);
+        $this->assertSame(['a', 0, 'b'], Attribute::fromString('a[0].b')->project()->segments);
+        $this->assertSame(['a[0]b'], Attribute::fromString('"a[0]b"')->project()->segments);
+        $this->assertSame(['a[0]b'], Attribute::create('a[0]b')->project()->segments);
     }
 
     /**
@@ -77,6 +77,6 @@ final class PathCreationTest extends TestCase
     {
         $this->expectException($exceptionClass);
         $this->expectExceptionMessage($expectedMessage);
-        Path::fromString($inputPath);
+        Attribute::fromString($inputPath);
     }
 }

@@ -28,6 +28,9 @@ final class PathStringParser
     private bool $inIndex = false;
     private int $index = 0;
 
+    /**
+     * @param string $pathString
+     */
     private function __construct(
         private readonly string $pathString,
     ) {
@@ -266,6 +269,9 @@ final class PathStringParser
         return $decoded;
     }
 
+    /**
+     * @return void
+     */
     private function flushBuffer(): void
     {
         if ($this->buffer === '') {
@@ -296,6 +302,12 @@ final class PathStringParser
         $this->flushBuffer();
     }
 
+    /**
+     * @param string $message
+     * @param int $index
+     * @throws InvalidArgumentException
+     * @return never
+     */
     private function fail(string $message, int $index): never
     {
         throw new InvalidArgumentException(sprintf(
