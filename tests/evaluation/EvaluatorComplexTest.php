@@ -2,7 +2,7 @@
 
 namespace DynaExp\Tests\Evaluation;
 
-use DynaExp\Factories\Path;
+use DynaExp\Factories\Attribute;
 use DynaExp\Nodes\Action;
 use DynaExp\Nodes\Operation;
 use DynaExp\Nodes\Projection;
@@ -18,8 +18,8 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function operationProvider(): array
     {
-        $somePath = Path::create('someAttribute', 1, 'nestedAttribute');
-        $anotherPath = Path::create('anotherAttribute');
+        $somePath = Attribute::create('someAttribute', 1, 'nestedAttribute');
+        $anotherPath = Attribute::create('anotherAttribute');
         return [
             [
                 $somePath
@@ -100,8 +100,8 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function actionProvider(): array
     {
-        $somePath = Path::create('someAttribute', 1, 'nestedAttribute');
-        $anotherPath = Path::create('anotherAttribute');
+        $somePath = Attribute::create('someAttribute', 1, 'nestedAttribute');
+        $anotherPath = Attribute::create('anotherAttribute');
         return [
             [
                 $somePath->set($anotherPath->ifNotExists(2)->plus(3)),
@@ -181,9 +181,9 @@ final class EvaluatorComplexTest extends TestCase
      */
     public static function projectionProvider(): array
     {
-        $somePath = Path::create('someAttribute', 'nestedAttribute');
-        $anotherPath = Path::create('anotherAttribute');
-        $anotherOnePath = Path::create('anotherOneAttribute', 'nestedAttribute', 2);
+        $somePath = Attribute::create('someAttribute', 'nestedAttribute');
+        $anotherPath = Attribute::create('anotherAttribute');
+        $anotherOnePath = Attribute::create('anotherOneAttribute', 'nestedAttribute', 2);
         return [
             [
                 new Projection([$somePath->project()]),

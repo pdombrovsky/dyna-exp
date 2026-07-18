@@ -31,72 +31,72 @@ final readonly class KeyCondition implements EvaluableInterface, Stringable
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $value
      * @return KeyCondition
      */
-    public static function equal(PathNode $path, mixed $value): self
+    public static function equal(Path $path, mixed $value): self
     {
         return new self(KeyConditionTypeEnum::equalKeyCond, $path, [$value]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $value
      * @return KeyCondition
      */
-    public static function lessThan(PathNode $path, mixed $value): self
+    public static function lessThan(Path $path, mixed $value): self
     {
         return new self(KeyConditionTypeEnum::lessThanKeyCond, $path, [$value]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $value
      * @return KeyCondition
      */
-    public static function lessThanEqual(PathNode $path, mixed $value): self
+    public static function lessThanEqual(Path $path, mixed $value): self
     {
         return new self(KeyConditionTypeEnum::lessThanEqualKeyCond, $path, [$value]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $value
      * @return KeyCondition
      */
-    public static function greaterThan(PathNode $path, mixed $value): self
+    public static function greaterThan(Path $path, mixed $value): self
     {
         return new self(KeyConditionTypeEnum::greaterThanKeyCond, $path, [$value]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $value
      * @return KeyCondition
      */
-    public static function greaterThanEqual(PathNode $path, mixed $value): self
+    public static function greaterThanEqual(Path $path, mixed $value): self
     {
         return new self(KeyConditionTypeEnum::greaterThanEqualKeyCond, $path, [$value]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $prefix
      * @return KeyCondition
      */
-    public static function beginsWith(PathNode $path, mixed $prefix): self
+    public static function beginsWith(Path $path, mixed $prefix): self
     {
         return new self(KeyConditionTypeEnum::beginsWithKeyCond, $path, [$prefix]);
     }
 
     /**
-     * @param PathNode $path
+     * @param Path $path
      * @param mixed $lower
      * @param mixed $upper
      * @return KeyCondition
      */
-    public static function between(PathNode $path, mixed $lower, mixed $upper): self
+    public static function between(Path $path, mixed $lower, mixed $upper): self
     {
         return new self(KeyConditionTypeEnum::betweenKeyCond, $path, [$lower, $upper]);
     }

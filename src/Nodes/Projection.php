@@ -14,7 +14,7 @@ final readonly class Projection implements EvaluableInterface, Stringable
     use NodesToStringTrait;
 
     /**
-     * @param array<int|string, PathNode> $attributes
+     * @param array<int|string, Path> $attributes
      */
     public function __construct(public array $attributes)
     {
@@ -23,10 +23,10 @@ final readonly class Projection implements EvaluableInterface, Stringable
         }
 
         foreach ($attributes as $attribute) {
-            if (! $attribute instanceof PathNode) {
+            if (! $attribute instanceof Path) {
                 throw new InvalidArgumentException(sprintf(
                     'Projection attribute must be %s, %s given.',
-                    PathNode::class,
+                    Path::class,
                     get_debug_type($attribute),
                 ));
             }
@@ -34,7 +34,7 @@ final readonly class Projection implements EvaluableInterface, Stringable
     }
 
     /**
-     * @return array<int|string, PathNode>
+     * @return array<int|string, Path>
      */
     protected function operands(): array
     {

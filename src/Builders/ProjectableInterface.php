@@ -2,12 +2,12 @@
 
 namespace DynaExp\Builders;
 
-use DynaExp\Nodes\PathNode;
+use DynaExp\Nodes\Path;
 
 interface ProjectableInterface
 {
     /**
-     * @return PathNode
+     * @return Path
      */
-    function project(): PathNode;
+    function project(): Path;
 }

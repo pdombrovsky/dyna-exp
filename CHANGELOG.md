@@ -1,5 +1,33 @@
 # Changelog
 
+## [v1.0.0-alpha-16] - 2026-07-18
+
+### Breaking Changes
+
+- `DynaExp\Nodes\PathNode` was renamed to `DynaExp\Nodes\Path`.
+- `DynaExp\Factories\Path` was renamed to `DynaExp\Factories\Attribute`.
+- `DynaExp\Factories\Size` was renamed to `DynaExp\Factories\AttributeSize`.
+- `DynaExp\Factories\IfNotExists` was renamed to `DynaExp\Factories\DefaultValue`.
+- `ProjectableInterface::project()` now returns `DynaExp\Nodes\Path`.
+- `Projection` now models projection paths as `DynaExp\Nodes\Path` entries.
+
+### Changed
+
+- `DynaExp\Nodes\Path` is now the standalone validated path node/expression operand.
+- `Attribute`, `Key`, `AttributeSize`, and `DefaultValue` keep the fluent helper roles and wrap the underlying `Nodes\Path` where needed.
+- README examples now use `Attribute::create(...)` / `Attribute::fromString(...)` for fluent condition/update/projection helpers and `DynaExp\Nodes\Path` for standalone path operands.
+- Tests were renamed and updated to match the new `Attribute` facade and `Path` node naming.
+
+### Migration Notes
+
+- Replace `DynaExp\Nodes\PathNode` imports/usages with `DynaExp\Nodes\Path`.
+- Replace `DynaExp\Factories\Path` imports/usages with `DynaExp\Factories\Attribute`.
+- Replace `DynaExp\Factories\Size` imports/usages with `DynaExp\Factories\AttributeSize`.
+- Replace `DynaExp\Factories\IfNotExists` imports/usages with `DynaExp\Factories\DefaultValue`.
+- Replace `Path::create(...)` / `Path::fromString(...)` facade usages with `Attribute::create(...)` / `Attribute::fromString(...)` when using fluent condition/update/projection helpers.
+- Use `DynaExp\Nodes\Path::create(...)` or `DynaExp\Nodes\Path::fromString(...)` when a standalone path node/expression operand is needed directly.
+- If an attribute should be used as an expression operand in a condition, pass `Attribute::create(...)->project()`. Passing the `Attribute` object itself keeps it as an opaque value alias.
+
 ## [v1.0.0-alpha-15] - 2026-07-11
 
 ### Breaking Changes
