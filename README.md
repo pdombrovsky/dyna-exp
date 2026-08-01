@@ -264,25 +264,36 @@ Notes:
 ## KeyConditionBuilder
 
 Description:
-- Combines left and right key conditions with AND. Left condition is required; right is optional.
+- Combines individual key conditions with `AND`.
+- The first condition is passed to the constructor; additional conditions can be appended with repeated `.and()` calls.
 
 Examples:
 ```php
 use DynaExp\Factories\Key;
 use DynaExp\Builders\KeyConditionBuilder;
 
-$left  = Key::create('pk')->equal('H');
-$right = Key::create('sk')->beginsWith('ORD#');
-
-$keyCond = (new KeyConditionBuilder($left))
-    ->and($right)
+$keyCondition = (new KeyConditionBuilder(
+    Key::create('tournamentId')->equal('WINTER2026')
+))
+    ->and(Key::create('region')->equal('EU'))
+    ->and(Key::create('round')->equal(3))
+    ->and(Key::create('bracket')->beginsWith('UP'))
     ->build();
+
+// Semantics:
+// tournamentId = :0
+// AND region = :1
+// AND round = :2
+// AND begins_with(bracket, :3)
 ```
 
+This shape can be used for DynamoDB multi-attribute GSI key conditions, as well as the traditional partition-key plus sort-key form.
+
 Notes:
-- An `AND` key condition should not be nested again as `AND` (guarded by the builder).
-- `.and()` can be called only once; a second call throws.
-- The builder validates only this local shape. It does not validate table schema, partition key role, or sort key role.
+- Pass each individual key condition separately. A condition that already represents an `AND` expression is rejected by the builder.
+- `.and()` may be called multiple times.
+- DynamoDB currently allows up to four partition key attributes and four sort key attributes in a multi-attribute GSI. `KeyConditionBuilder` intentionally does not enforce this limit because it is schema-agnostic and does not know which table or index the expression targets.
+- The builder validates only its local composition rules. It does not know the table or index schema and therefore does not validate partition key or sort key membership, component order, required key parts, or whether a specific operator is allowed for a particular key component.
 
 ## ProjectionBuilder
 

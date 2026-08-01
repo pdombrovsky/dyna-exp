@@ -41,15 +41,29 @@ final class KeyConditionBuilderTest extends TestCase
         $this->assertSame('#0 > :0 AND #0 < :1', $evaluator->evaluate($condition));
     }
 
-    public function testAndCanOnlyBeCalledOnce(): void
+    public function testAndCanBeCalledMultipleTimes(): void
     {
-        $builder = new KeyConditionBuilder(Key::create('pk')->equal('USER#1'));
-        $builder->and(Key::create('sk')->beginsWith('ORDER#'));
+        $pk1 = Key::create('pk1')->equal('USER#1');
+        $pk2 = Key::create('pk2')->equal('REGION#EU');
+        $sk1 = Key::create('sk1')->equal('ORDER');
+        $sk2 = Key::create('sk2')->beginsWith('2026#');
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Only one AND key condition is allowed.');
+        $condition = (new KeyConditionBuilder($pk1))
+            ->and($pk2)
+            ->and($sk1)
+            ->and($sk2)
+            ->build();
 
-        $builder->and(Key::create('sk2')->equal('OTHER'));
+        $this->assertEquals(
+            KeyCondition::and(
+                KeyCondition::and(
+                    KeyCondition::and($pk1, $pk2),
+                    $sk1
+                ),
+                $sk2
+            ),
+            $condition
+        );
     }
 
     public function testNestedAndConditionIsRejected(): void
@@ -60,8 +74,29 @@ final class KeyConditionBuilderTest extends TestCase
         );
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Condition 'AND' must not be nested.");
+        $this->expectExceptionMessage(
+            "Key condition of type 'AND' cannot be added to the builder."
+        );
 
         new KeyConditionBuilder($nested);
+    }
+
+    public function testNestedAndConditionCannotBeAdded(): void
+    {
+        $nested = KeyCondition::and(
+            Key::create('pk2')->equal('REGION#EU'),
+            Key::create('sk')->beginsWith('ORDER#')
+        );
+
+        $builder = new KeyConditionBuilder(
+            Key::create('pk1')->equal('USER#1')
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            "Key condition of type 'AND' cannot be added to the builder."
+        );
+
+        $builder->and($nested);
     }
 }

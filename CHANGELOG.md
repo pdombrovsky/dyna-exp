@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.0.0-alpha-17] - 2026-08-01
+
+### Changed
+
+- `KeyConditionBuilder` now supports combining any number of individual key conditions with `AND`.
+- `KeyConditionBuilder::and()` can be called repeatedly instead of being limited to a single right-hand condition.
+- `KeyConditionBuilder::allOf()` now accepts additional key conditions through a variadic argument while preserving the existing first two parameters.
+- Nested `AND` key conditions are still rejected by the builder; callers should add each individual key condition separately.
+- `KeyConditionBuilder` remains schema-agnostic and does not validate partition key or sort key membership, component order, required key parts, or operator compatibility with a specific table or index.
+
+### Documentation
+
+- Updated the `KeyConditionBuilder` README example to demonstrate a multi-attribute GSI key condition with multiple partition and sort key components.
+- Clarified that DynaExp only builds the expression shape; validation against the actual DynamoDB table or index schema belongs to application-level code.
+
 ## [v1.0.0-alpha-16] - 2026-07-18
 
 ### Breaking Changes
