@@ -9,77 +9,89 @@ use DynaExp\Nodes\KeyCondition;
 final class KeyConditionBuilder
 {
     /**
-     * @var ?KeyCondition
+     * @var KeyCondition
      */
-    private ?KeyCondition $rightKeyCondition;
+    private KeyCondition $keyCondition;
 
     /**
-     * @param KeyCondition $leftKeyCondition
-     * @throws InvalidArgumentException
+     * @param KeyCondition $keyCondition Initial key condition.
+     * @throws InvalidArgumentException If the provided condition is an AND expression.
      */
-    public function __construct(private KeyCondition $leftKeyCondition)
+    public function __construct(KeyCondition $keyCondition)
     {
-        self::assertSimple($leftKeyCondition);
+        self::assertNotAndCondition($keyCondition);
 
-        $this->rightKeyCondition = null;
+        $this->keyCondition = $keyCondition;
     }
 
     /**
-     * Creates a builder that ANDs the provided conditions.
-     * 
-     * @param KeyCondition $left
-     * @param KeyCondition $right
+     * Creates a builder containing all provided key conditions joined by AND.
+     *
+     * @param KeyCondition $left  First key condition.
+     * @param KeyCondition $right Second key condition.
+     * @param KeyCondition ...$rest Additional key conditions.
      * @return self
+     * @throws InvalidArgumentException If any provided condition is an AND expression.
      */
-    public static function allOf(KeyCondition $left, KeyCondition $right): self
-    {
+    public static function allOf(
+        KeyCondition $left,
+        KeyCondition $right,
+        KeyCondition ...$rest
+    ): self {
         $builder = new self($left);
+
         $builder->and($right);
+
+        foreach ($rest as $keyCondition) {
+            $builder->and($keyCondition);
+        }
+
         return $builder;
     }
 
     /**
-     * Adds a single right-hand side KeyCondition with an AND operator.
+     * Adds a key condition joined to the current expression by AND.
      *
-     * @param KeyCondition $rightKeyCondition The right-hand side condition to be combined with the left one.
+     * @param KeyCondition $keyCondition Key condition to add.
      * @return self
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException If the provided condition is an AND expression.
      */
-    public function and(KeyCondition $rightKeyCondition): self
+    public function and(KeyCondition $keyCondition): self
     {
-        if ($this->rightKeyCondition !== null) {
+        self::assertNotAndCondition($keyCondition);
 
-            throw new InvalidArgumentException('Only one AND key condition is allowed.');
-
-        }
-
-        self::assertSimple($rightKeyCondition);
-
-        $this->rightKeyCondition = $rightKeyCondition;
+        $this->keyCondition = KeyCondition::and(
+            $this->keyCondition,
+            $keyCondition
+        );
 
         return $this;
     }
 
     /**
+     * Returns the resulting key condition expression.
+     *
      * @return KeyCondition
      */
     public function build(): KeyCondition
     {
-        return $this->rightKeyCondition ?
-            KeyCondition::and($this->leftKeyCondition, $this->rightKeyCondition) :
-            $this->leftKeyCondition;
+        return $this->keyCondition;
     }
 
     /**
-     * @throws InvalidArgumentException
+     * Ensures that a combined AND condition is not passed to the builder.
+     *
+     * @param KeyCondition $keyCondition Key condition to validate.
+     * @return void
+     * @throws InvalidArgumentException If the provided condition is an AND expression.
      */
-    private static function assertSimple(KeyCondition $condition): void
+    private static function assertNotAndCondition(KeyCondition $keyCondition): void
     {
-        if ($condition->type === KeyConditionTypeEnum::andKeyCond) {
-
-            throw new InvalidArgumentException("Condition 'AND' must not be nested.");
-
+        if ($keyCondition->type === KeyConditionTypeEnum::andKeyCond) {
+            throw new InvalidArgumentException(
+                "Key condition of type 'AND' cannot be added to the builder."
+            );
         }
     }
-
 }
+
