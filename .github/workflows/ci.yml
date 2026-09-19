@@ -42,7 +42,7 @@ jobs:
         run: composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run PHPUnit
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit tests
 
   static-analysis:
     name: PHPStan
