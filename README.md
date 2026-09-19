@@ -494,6 +494,7 @@ Important rules:
 - return the original node when no rewrite is needed
 - keep the transformation idempotent
 - do not traverse child nodes manually; `Evaluator` already does that during recursive rendering
+- preserve the original node boundary when a rewrite expands one condition into a compound logical expression; use explicit parentheses when surrounding operator precedence could otherwise change its meaning
 
 Prefer the regular builders whenever the expression can already be modeled directly. A preprocessor is an edge-case extension point, not the default way to build expressions.
 
@@ -527,19 +528,24 @@ final readonly class SplitLargeInPreprocessor implements ExpressionPreprocessorI
         }
 
         $chunks = array_chunk($values, $this->chunkSize);
+
         $conditions = array_map(
             fn (array $chunk): Condition => Condition::in($path, ...$chunk),
             $chunks
         );
 
-        return array_reduce(
-            array_slice($conditions, 1),
-            fn (Condition $carry, Condition $next): Condition => Condition::or($carry, $next),
-            $conditions[0]
+        return Condition::parenthesized(
+            array_reduce(
+                array_slice($conditions, 1),
+                fn (Condition $carry, Condition $next): Condition => Condition::or($carry, $next),
+                $conditions[0]
+            )
         );
     }
 }
 ```
+
+The explicit `Condition::parenthesized()` is important here because the original single `IN` condition may be nested inside a larger logical expression. Without parentheses, replacing it with an `OR` chain could change the meaning of the surrounding expression due to `AND`/`OR` operator precedence.
 
 This example is intentionally more advanced: it shows that a preprocessor can perform a structural rewrite, not just tweak a scalar value.
 
